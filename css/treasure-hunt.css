@@ -1,0 +1,192 @@
+:root {
+  --primary: #0077b6;
+  /* メインカラー – 青 */
+  --accent: #ffce54;
+  /* 強調カラー – ゴールド */
+  --bg: #fefefe;
+  /* 背景色 */
+  --text: #333333;
+  /* 文字色 */
+}
+
+/* ---------- Reset & Base ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, "Helvetica Neue", "YuGothic", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ---------- Header ---------- */
+.header {
+  background: var(--bg);
+  border-bottom: 1px solid #e5e5e5;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* Navigation */
+nav {
+  position: relative;
+}
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-list a {
+  text-decoration: none;
+  color: var(--text);
+  padding: 0.5rem;
+  transition: color 0.3s;
+}
+
+.nav-list a:hover {
+  color: var(--primary);
+}
+
+/* Hamburger (mobile) */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-toggle .bar {
+  width: 24px;
+  height: 2px;
+  background: var(--text);
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  background: linear-gradient(135deg, var(--primary) 0%, #48cae4 100%);
+  color: #ffffff;
+  text-align: center;
+  padding: 4rem 1rem;
+}
+
+.hero-content {
+  background: rgba(0, 0, 0, 0.4);
+  display: inline-block;
+  padding: 2rem 1.5rem;
+  border-radius: 12px;
+  backdrop-filter: blur(2px);
+}
+
+.btn-primary {
+  display: inline-block;
+  background: var(--accent);
+  color: #000;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 700;
+  margin-top: 1rem;
+  text-decoration: none;
+  transition: opacity 0.3s;
+}
+
+.btn-primary:hover {
+  opacity: 0.8;
+}
+
+/* ---------- Sections ---------- */
+.section {
+  padding: 3rem 1rem;
+}
+
+.section h2 {
+  margin-bottom: 1rem;
+  color: var(--primary);
+  text-align: center;
+  font-size: 1.75rem;
+}
+
+.section p {
+  text-align: center;
+}
+
+#howto ol {
+  list-style: decimal inside;
+  max-width: 600px;
+  margin: 0 auto;
+  font-size: 1.1rem;
+}
+
+#rules ul {
+  list-style: disc inside;
+  max-width: 600px;
+  margin: 0 auto;
+  font-size: 1.1rem;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  background: #f5f5f5;
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 600px) {
+  .nav-toggle {
+    display: flex;
+  }
+
+  .nav-list {
+    position: absolute;
+    top: 60px;
+    /* header height approx. */
+    right: 1rem;
+    background: var(--bg);
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    display: none;
+  }
+
+  .nav-list.active {
+    display: flex;
+  }
+}

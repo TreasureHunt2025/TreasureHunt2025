@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>チュートリアル | 宝探し企画</title>
+
+  <!-- 既存の共通スタイル -->
+  <link rel="stylesheet" href="./css/treasure-hunt.css" />
+
+  <!-- ページ固有の装飾を少し追加 -->
+  <style>
+    .narrow {
+      max-width: 560px;
+      margin: 2.5rem auto;
+    }
+
+    /* カード風コンテナ */
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 2rem 1.5rem;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.09);
+    }
+
+    /* 手順リストを番号付きバッジで強調 */
+    ol.card {
+      counter-reset: step;
+      list-style: none;
+    }
+
+    ol.card li {
+      counter-increment: step;
+      position: relative;
+      padding-left: 3rem;
+      margin-bottom: 1.25rem;
+      line-height: 1.6;
+    }
+
+    ol.card li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0.15rem;
+      width: 2rem;
+      height: 2rem;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+    }
+
+    /* スタートボタン */
+    .btn-start {
+      display: block;
+      width: 100%;
+      margin-top: 2.5rem;
+      padding: 1rem 0;
+      border: none;
+      border-radius: 12px;
+      background: var(--accent);
+      color: #000;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.3s;
+    }
+
+    .btn-start:hover {
+      opacity: 0.85;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="container flex-between">
+      <h1 class="logo">Treasure&nbsp;Hunt</h1>
+    </div>
+  </header>
+
+  <main class="container narrow">
+    <h2 style="text-align:center; margin-bottom:1.5rem;">遊び方</h2>
+    <ol class="card">
+      <li>キャンパス内のQRコードを探して読み取ろう。</li>
+      <li>各QRコードにはミニゲームがあるよ。クリアするとお宝をゲット。</li>
+      <li>QRコードは全部で <strong>6&nbsp;箇所</strong> にある！</li>
+      <li>全て探す必要はなく <strong>4&nbsp;箇所以上</strong> 見つければ景品ゲット。</li>
+      <li>景品は <strong>1等〜4等</strong> のランクで用意。</li>
+      <li>お宝を4個集めると<strong>抽選券1枚</strong>。</li>
+      <li>5個集めると<strong>抽選券2枚</strong>。</li>
+      <li>6個集めると<strong>抽選券3枚</strong>。</li>
+      <li>複数回抽選した中から好きな景品を <strong>1人1つ</strong> もらえる。</li>
+      <li>お宝を4〜6個集めて「ゴール」を押すとタイムが確定！</li>
+    </ol>
+
+    <button id="startBtn" class="btn-start">宝探しスタート！</button>
+  </main>a
+  <script type="module" src="./js/tutorial.js"></script>
+</body>
+
+</html>

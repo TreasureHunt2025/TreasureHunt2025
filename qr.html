@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>お宝発見 | 宝探し企画</title>
+
+  <!-- 共通スタイル -->
+  <link rel="stylesheet" href="./css/treasure-hunt.css" />
+
+  <!-- ページ専用スタイル -->
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .15);
+      text-align: center;
+      max-width: 480px;
+      width: 100%;
+    }
+
+    .anim {
+      width: 120px;
+      height: 120px;
+      margin: 1.2rem auto;
+      animation: pop .6s ease-out;
+    }
+
+    @keyframes pop {
+      0% {
+        transform: scale(0);
+      }
+
+      80% {
+        transform: scale(1.1);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .btn-next {
+      display: inline-block;
+      margin-top: 2rem;
+      padding: 1rem 2rem;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .3s;
+    }
+
+    .btn-next:hover {
+      opacity: .85;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="container flex-between">
+      <h1 class="logo">Treasure&nbsp;Hunt</h1>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2 role="alert">お宝発見！</h2>
+      <img src="images/treasure.gif" alt="宝箱が開くアニメーション" class="anim" />
+      <p>次のヒントはマップに表示されます。</p>
+      <button id="nextBtn" class="btn-next">マップへ戻る 🗺️</button>
+    </div>
+  </main>
+  <script type="module" src="./js/qr.js"></script>
+</body>
+</html>

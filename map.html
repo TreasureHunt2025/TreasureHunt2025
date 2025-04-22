@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>宝探しマップ | 宝探し企画</title>
+
+  <!-- 共通スタイル -->
+  <link rel="stylesheet" href="./css/treasure-hunt.css" />
+
+  <!-- マップ専用スタイル -->
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    /* 画面全体にマップを表示 (100% 高さ) */
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+
+    /* フローティングアクションボタン（💡ヒント） */
+    .fab {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--accent);
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #000;
+      font-size: 2rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+      cursor: pointer;
+      z-index: 5;
+    }
+
+    /* ヒントパネル */
+    .panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border-top-left-radius: 1.25rem;
+      border-top-right-radius: 1.25rem;
+      max-height: 65vh;
+      transform: translateY(100%);
+      transition: transform 0.35s ease;
+      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
+      padding: 1.2rem 1.5rem 2rem;
+      overflow-y: auto;
+      z-index: 4;
+    }
+
+    .panel.open {
+      transform: translateY(0);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 1.3rem;
+      color: var(--primary);
+    }
+
+    .reset {
+      background: #e91e63;
+      color: #fff;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 0.6rem;
+      cursor: pointer;
+    }
+
+    .hint {
+      padding: 0.75rem 1rem;
+      border-radius: 0.8rem;
+      background: #f7f9fc;
+      margin-bottom: 0.6rem;
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      font-size: 0.95rem;
+    }
+
+    .hint.completed {
+      opacity: 0.55;
+      text-decoration: line-through;
+    }
+
+    .hint .index {
+      background: var(--primary);
+      color: #fff;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 0.8rem;
+      flex: 0 0 24px;
+    }
+
+    .hint span {
+      flex: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <!-- ヒントボタン -->
+  <button class="fab" id="toggle-panel" aria-label="ヒント一覧">💡</button>
+
+  <!-- ヒントパネル -->
+  <div class="panel" id="panel">
+    <div class="panel-header">
+      <h2>ヒント一覧</h2>
+      <button class="reset" id="reset">リセット</button>
+    </div>
+    <div id="hint-list"></div>
+  </div>
+
+  <script type="module" src="./js/map.js" defer></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB6bl3txIipCPuW7fnntAikOizcVJiPBaM&callback=initMap"
+    defer loading="lazy"></script>
+</body>
+
+</html>

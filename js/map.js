@@ -7,12 +7,12 @@ import {
 
 let map;
 const circleCenters = [
-  { id: 1, lat: 35.785014, lng: 139.399027, hint: "1" },
+  { id: 1, lat: 35.785017, lng: 139.399029, hint: "1" },
   { id: 2, lat: 35.788606, lng: 139.399474, hint: "2" },
   { id: 3, lat: 35.785553, lng: 139.398972, hint: "3" },
   { id: 4, lat: 35.785894, lng: 139.39942,  hint: "4" },
   { id: 5, lat: 35.785200, lng: 139.39942,  hint: "5" },
-  { id: 6, lat: 35.785894, lng: 139.39500,  hint: "6" }
+  { id: 6, lat: 35.785131, lng: 139.398385,  hint: "6" }
 ];
 
 function initMap() {

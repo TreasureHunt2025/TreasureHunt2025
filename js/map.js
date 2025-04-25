@@ -10,8 +10,8 @@ const circleCenters = [
   { id: 1, lat: 35.785017, lng: 139.399029, hint: "1" },
   { id: 2, lat: 35.788606, lng: 139.399474, hint: "2" },
   { id: 3, lat: 35.785553, lng: 139.398972, hint: "3" },
-  { id: 4, lat: 35.785894, lng: 139.39942,  hint: "4" },
-  { id: 5, lat: 35.785200, lng: 139.39942,  hint: "5" },
+  { id: 4, lat: 35.785894, lng: 139.39942, hint: "4" },
+  { id: 5, lat: 35.785200, lng: 139.39942, hint: "5" },
   { id: 6, lat: 35.785131, lng: 139.398385, hint: "6" }
 ];
 
@@ -27,8 +27,8 @@ export function initMap() {
       latLngBounds: {
         north: center.lat + 0.009,
         south: center.lat - 0.009,
-        east:  center.lng + 0.01,
-        west:  center.lng - 0.01
+        east: center.lng + 0.01,
+        west: center.lng - 0.01
       }
     },
     mapTypeControl: false,
@@ -69,18 +69,26 @@ window.initMap = initMap;
 function applyFantasyStyle() {
   /* 1) 巻物風スタイル */
   const fantasyStyle = [
-    {elementType:"geometry",stylers:[{color:"#d7c4a5"}]},
-    {elementType:"labels",stylers:[{visibility:"off"}]},
-    {featureType:"road",elementType:"geometry.stroke",
-      stylers:[{color:"#bba788"},{weight:1.2}]},
-    {featureType:"road",elementType:"geometry.fill",
-      stylers:[{color:"#cab9a0"}]},
-    {featureType:"water",elementType:"geometry",
-      stylers:[{color:"#b59f7b"}]},
-    {featureType:"administrative",elementType:"geometry",
-      stylers:[{visibility:"off"}]},
-    {featureType:"poi",stylers:[{visibility:"off"}]},
-    {featureType:"transit",stylers:[{visibility:"off"}]}
+    { elementType: "geometry", stylers: [{ color: "#d7c4a5" }] },
+    { elementType: "labels", stylers: [{ visibility: "off" }] },
+    {
+      featureType: "road", elementType: "geometry.stroke",
+      stylers: [{ color: "#bba788" }, { weight: 1.2 }]
+    },
+    {
+      featureType: "road", elementType: "geometry.fill",
+      stylers: [{ color: "#cab9a0" }]
+    },
+    {
+      featureType: "water", elementType: "geometry",
+      stylers: [{ color: "#b59f7b" }]
+    },
+    {
+      featureType: "administrative", elementType: "geometry",
+      stylers: [{ visibility: "off" }]
+    },
+    { featureType: "poi", stylers: [{ visibility: "off" }] },
+    { featureType: "transit", stylers: [{ visibility: "off" }] }
   ];
   map.setOptions({ styles: fantasyStyle });
 
@@ -92,23 +100,18 @@ function applyFantasyStyle() {
       map.data.setStyle({
         strokeColor: "#ffffff",
         strokeWeight: 6,
-        fillColor:   "#c2ac87",
+        fillColor: "#c2ac87",
         fillOpacity: 0.9
       });
     });
 
-  /* 3) パーチメントテクスチャ */
-  const parchment = new google.maps.GroundOverlay(
-    "https://i.imgur.com/ao13krd.png",
-    { south: 35.785109, west: 139.397016, north: 35.789609, east: 139.402536 },
-    { opacity: 0.35 }
-  );
-  parchment.setMap(map);
 
   /* 4) ラベル OverlayView */
   class TextLabel extends google.maps.OverlayView {
-    constructor(pos, text, size = 20) { super();
-      this.pos = pos; this.text = text; this.size = size; this.div = null; }
+    constructor(pos, text, size = 20) {
+      super();
+      this.pos = pos; this.text = text; this.size = size; this.div = null;
+    }
     onAdd() {
       this.div = document.createElement("div");
       this.div.className = "campus-label";
@@ -124,8 +127,8 @@ function applyFantasyStyle() {
   }
   /* ラベル配置 */
   new TextLabel(new google.maps.LatLng(35.787359, 139.399776), "早稲田大学所沢キャンパス", 22).setMap(map);
-  new TextLabel(new google.maps.LatLng(35.787659, 139.399776), "101号館").setMap(map);
-  new TextLabel(new google.maps.LatLng(35.787059, 139.399776), "100号館").setMap(map);
+  new TextLabel(new google.maps.LatLng(35.788998,139.399433), "101号館").setMap(map);
+  new TextLabel(new google.maps.LatLng(35.786226,139.398759), "100号館").setMap(map);
 }
 
 /* ──────────── 以下：宝ポイント Firestore ロジック ──────────── */
@@ -153,7 +156,7 @@ function drawCircles() {
     const circle = new google.maps.Circle({
       map, center, radius: 15,
       strokeColor: "#e53935", strokeOpacity: 0.9, strokeWeight: 2,
-      fillColor: "#e57373",  fillOpacity: 0.35
+      fillColor: "#e57373", fillOpacity: 0.35
     });
     const info = new google.maps.InfoWindow({
       content: `<strong>ヒント:</strong> ${center.hint}`

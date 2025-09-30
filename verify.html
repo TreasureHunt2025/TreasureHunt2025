@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>引き換え確認 | 前月祭 宝探し企画（スタッフ用）</title>
+  <meta name="description" content="早稲田大学 所沢キャンパス祭 宝探し企画">
+  <link rel="stylesheet" href="./css/reset.css" />
+  <link rel="stylesheet" href="./css/treasurehunt.css" />
+  <meta name="theme-color" content="#155419" />
+  <style>
+    .verify-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .4rem .7rem;
+      border-radius: 999px;
+      font-weight: 700
+    }
+
+    .ok {
+      background: #e6f3ec;
+      color: #155419;
+      border: 1px solid #cfe8d9
+    }
+
+    .ng {
+      background: #fdecea;
+      color: #8d1d14;
+      border: 1px solid #f5c7c2
+    }
+
+    .warn {
+      background: #fff8e6;
+      color: #6a4d05;
+      border: 1px solid #f3e1b3
+    }
+
+    #pwLayer {
+      position: fixed;
+      inset: 0;
+      z-index: 4000;
+      display: grid;
+      place-items: center;
+      padding: clamp(12px, 3vw, 24px);
+      background: rgba(255, 255, 255, .85);
+      backdrop-filter: blur(3px);
+    }
+
+    #pwLayer[hidden] {
+      display: none;
+    }
+
+    .pw-card {
+      width: min(520px, 96%);
+      text-align: center;
+
+    }
+
+    .pw-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: .5rem;
+    }
+
+    #pwLayer input[type="password"],
+    #pwLayer .input {
+      flex: 1;
+      min-width: 220px;
+      width: 100%;
+      font-size: 17px;
+      padding: 12px 14px;
+      border: 1.6px solid #cedad5;
+      border-radius: 12px;
+      background: #fff;
+      outline: none;
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body class="center-page">
+  <a class="skip-link" href="#main">コンテンツへスキップ</a>
+  <header class="header" role="banner">
+    <div class="container flex-between">
+      <div class="brand">
+        <img class="logo-mark" src="./image/treasure_icon_2.png" width="36" height="36" alt="宝探しロゴ">
+        <h1 class="logo">Treasure Hunt</h1>
+      </div>
+    </div>
+  </header>
+
+  <!-- スタッフ認証ゲート -->
+  <section id="pwLayer">
+    <div id="pwGate" class="center-card pw-card">
+      <h2 style="margin-top:0">スタッフ認証</h2>
+      <p>パスワードを入力してください。</p>
+      <div class="pw-row">
+        <input id="pwInput" type="password" inputmode="text" autocomplete="off" placeholder="パスワード" class="input">
+        <button id="pwBtn" class="btn-go primary">認証する</button>
+      </div>
+      <p id="pwMsg" style="margin:.5rem 0 0;color:#8d1d14"></p>
+    </div>
+  </section>
+
+  <main role="main" id="main" hidden>
+    <p>スタッフ用 確認ページ</p>
+    <div class="center-card" style="text-align:left">
+      <h2 id="statusTitle" style="margin-top:0">読み込み中…</h2>
+      <div id="statusBadge" class="verify-badge warn">確認中</div>
+
+      <dl class="result" style="margin:.8rem 0 1rem;">
+        <div class="result__row">
+          <dt>UID</dt>
+          <dd id="vUid">-</dd>
+        </div>
+        <div class="result__row">
+          <dt>チーム</dt>
+          <dd id="vTeam">-</dd>
+        </div>
+        <div class="result__row">
+          <dt>人数</dt>
+          <dd id="vMembers">-</dd>
+        </div>
+        <div class="result__row">
+          <dt>達成数</dt>
+          <dd id="vFound">-</dd>
+        </div>
+        <div class="result__row">
+          <dt>所要時間</dt>
+          <dd id="vElapsed">-</dd>
+        </div>
+        <div class="result__row">
+          <dt>引き換え状況</dt>
+          <dd id="vRedeemed">-</dd>
+        </div>
+      </dl>
+
+      <div id="actionArea" style="display:flex;gap:10px;flex-wrap:wrap">
+        <button id="redeemBtn" class="btn-go primary" disabled>クーポン引き換え済みにする</button>
+        <p>※一度押してしまうと再度やり直すことはできません</p>
+      </div>
+
+      <p id="note" style="margin:.6rem 0 0;color:#6b5e55"></p>
+    </div>
+  </main>
+
+  <script type="module" src="./js/verify.js"></script>
+  <footer class="footer">
+    <p>2025 所沢キャンパス祭 宝探し企画</p>
+  </footer>
+
+</body>
+
+</html>

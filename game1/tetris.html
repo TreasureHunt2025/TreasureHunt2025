@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Tetris | 前月祭 宝探し企画</title>
+  <link rel="stylesheet" href="../css/reset.css" />
+  <link rel="stylesheet" href="../css/treasurehunt.css" />
+  <link rel="stylesheet" href="tetrisStyle.css" />
+</head>
+
+<body>
+  <div id="goalbar" aria-live="polite">7ライン消したらクリア</div>
+
+  <canvas id="board" aria-label="Tetris board"></canvas>
+
+  <nav id="touchControls" aria-label="touch controls">
+    <button class="tc-btn" id="btnLeft" aria-label="左へ"><span>←</span></button>
+    <button class="tc-btn" id="btnRotate" aria-label="回転"><span>↻</span></button>
+    <button class="tc-btn" id="btnRight" aria-label="右へ"><span>→</span></button>
+    <button class="tc-btn" id="btnDrop" aria-label="落下"><span>↓</span></button>
+  </nav>
+
+  <div id="splash" role="dialog" aria-modal="true">
+    <div class="splash-card">
+      <img src="../image/tetris.png" alt="Tetris" class="tetris-logo" onerror="this.style.display='none'" />
+      <h1>TETRIS</h1>
+      <p class="splash-cond">勝利条件：<strong>7ライン</strong>消したらクリア</p>
+      <div class="touch-help" role="note" aria-live="polite">
+        <ul>
+          <li><b>タップ</b>: 回転</li>
+          <li><b>左右スワイプ</b>: 横移動</li>
+          <li><b>長押し</b>: 早く落とす</li>
+        </ul>
+      </div>
+
+      <p class="splash-sub">タップして開始</p>
+      <button id="startGame" class="btn-primary">PLAY</button>
+    </div>
+  </div>
+
+  <div id="clearSplash" role="dialog" aria-modal="true" class="hidden">
+    <div class="win-card">
+      <h2 class="win-title">🎉 クリア！</h2>
+      <p class="win-desc">7ライン達成しました。<br>「宝箱を受け取る」<br>を押して進んでください。</p>
+      <button id="claimBtn" class="btn-primary">宝箱を受け取る</button>
+    </div>
+  </div>
+
+  <div id="overSplash" role="dialog" aria-modal="true" class="hidden">
+    <div class="over-card">
+      <h2 class="over-title">💥 ゲームオーバー</h2>
+      <p class="over-desc">もう一度挑戦してみよう！</p>
+      <button id="retryBtn" class="btn-primary">もう一度プレイ</button>
+    </div>
+  </div>
+
+  <script src="tetris.js"></script>
+</body>
+
+</html>

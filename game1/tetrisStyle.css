@@ -1,0 +1,342 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  min-height: -webkit-fill-available;
+  padding-bottom: calc(max(0px, env(safe-area-inset-bottom)) + var(--extra-bottom, 40px));
+  background: #121212;
+  color: #e0e0e0;
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+}
+
+/* 勝利条件バー */
+#goalbar {
+  text-align: center;
+  padding: 10px env(safe-area-inset-right) 10px env(safe-area-inset-left);
+  background: #1a1a1a;
+  border-bottom: 1px solid #2a2a2a;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+/* 盤面 */
+#board {
+  justify-self: center;
+  align-self: center;
+  background: #0e0e0e;
+  border: 3px solid #333;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .4);
+  touch-action: none;
+}
+
+/* 操作ボタン */
+#touchControls {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 10px 12px max(10px, env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, .25));
+}
+
+.tc-btn {
+  min-height: 72px;
+  border-radius: 14px;
+  border: 0;
+  background: #1f1f1f;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .35);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-weight: 900;
+  font-size: 26px;
+}
+
+.tc-btn>span {
+  display: inline-block;
+  transform: translateY(0);
+}
+
+.tc-btn:active {
+  transform: translateY(1px);
+}
+
+/* 開始スプラッシュ */
+#splash {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, .78);
+  z-index: 3000;
+  padding: 24px;
+}
+
+.splash-card {
+  width: min(92vw, 520px);
+  background: #111;
+  color: #fff;
+  text-align: center;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, .6);
+}
+
+.splash-card img {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+
+.splash-card h1 {
+  margin: 4px 0 2px;
+  letter-spacing: .18em;
+}
+
+.splash-cond {
+  margin: 6px 0 12px;
+  font-size: 15px;
+  opacity: .95;
+}
+
+.splash-sub {
+  opacity: .8;
+  margin-bottom: 12px;
+}
+
+.btn-primary {
+  padding: .9rem 1.6rem;
+  border: none;
+  border-radius: 999px;
+  background: #16a34a;
+  color: #fff;
+  font-weight: 800;
+  font-size: 18px;
+}
+
+/* クリアスプラッシュ */
+.hidden {
+  display: none !important;
+}
+
+#clearSplash {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, .8);
+  z-index: 3500;
+  padding: 24px;
+}
+
+.win-card {
+  width: min(92vw, 520px);
+  background: #101010;
+  color: #fff;
+  text-align: center;
+  border-radius: 18px;
+  padding: 26px 20px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, .7);
+}
+
+.win-title {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.win-desc {
+  opacity: .95;
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+
+/* ゲームオーバースプラッシュ */
+#overSplash {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, .82);
+  z-index: 3600;
+  padding: 24px;
+}
+
+.over-card {
+  width: min(92vw, 520px);
+  background: #121212;
+  color: #fff;
+  text-align: center;
+  border-radius: 18px;
+  padding: 26px 20px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, .75);
+  border: 1px solid #272727;
+}
+
+.over-title {
+  font-size: 26px;
+  margin-bottom: 8px;
+}
+
+.over-desc {
+  opacity: .95;
+  margin-bottom: 14px;
+}
+
+/* 低め端末の微調整 */
+@media (max-height: 620px) {
+  #goalbar {
+    padding: 6px 8px;
+    font-size: 14px;
+  }
+
+  .tc-btn {
+    min-height: 60px;
+    font-size: 24px;
+  }
+}
+
+/* === 追加：ボタンUIは使わない・ジェスチャー前提 === */
+#touchControls,
+#btnLeft,
+#btnRight,
+#btnDrop,
+#btnRotate {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* キャンバス上でスワイプ/タップを拾う（対応ブラウザ） */
+#board {
+  touch-action: none;
+}
+
+/* 1) Basic semantics restored after reset */
+strong,
+b {
+  font-weight: 700;
+}
+
+em,
+i {
+  font-style: italic;
+}
+
+h1 {
+  font-size: clamp(22px, 4.6vw, 34px);
+  font-weight: 800;
+}
+
+h2 {
+  font-size: clamp(18px, 4vw, 28px);
+  font-weight: 800;
+}
+
+p {
+  line-height: 1.6;
+}
+
+/* 2) Controls normalized (reset may unset UA styles) */
+button,
+[role="button"] {
+  -webkit-appearance: none;
+  appearance: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+}
+
+/* Button components in this game */
+.btn-primary,
+.tc-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* 3) Canvas rendering and layout */
+#board {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  -ms-interpolation-mode: nearest-neighbor;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 4) Safe-area & viewport tweaks */
+html {
+  height: -webkit-fill-available;
+}
+
+body {
+  overscroll-behavior-y: contain;
+  /* prevent pull-to-refresh during play */
+  padding-bottom: calc(max(0px, env(safe-area-inset-bottom)) + var(--extra-bottom, 40px));
+}
+
+/* 5) Focus ring for accessibility (reset may clear it) */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(100, 181, 246, .9);
+  border-radius: 10px;
+}
+
+/* 6) Ensure splash/cards typography after reset */
+.splash-card h1,
+.win-title,
+.over-title {
+  font-weight: 800;
+}
+
+.splash-cond strong {
+  font-weight: 900;
+}
+
+/* center the splash icon */
+.tetris-logo{
+  display: block;
+  margin: 0 auto 12px;
+  max-width: clamp(96px, 30vw, 160px);
+  height: auto;
+  align-self: center;
+}
+
+.touch-help{
+  margin: 10px auto 14px;
+  padding: 10px 12px;
+  max-width: 420px;
+  background: rgba(0,0,0,.5);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px;
+  font-size: clamp(12px, 3.5vw, 15px);
+  line-height: 1.55;
+}
+.touch-help ul{ list-style: none; margin: 0; padding: 0; }
+.touch-help li{
+  display: flex;
+  gap: .5em;
+  align-items: baseline;
+  justify-content: center;
+}
+.touch-help b{ font-weight: 800; }

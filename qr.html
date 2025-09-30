@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>お宝獲得 | 前月祭 宝探し企画</title>
+  <meta name="description" content="早稲田大学 所沢キャンパス祭 宝探し企画">
+  <link rel="stylesheet" href="./css/reset.css" />
+  <link rel="stylesheet" href="./css/treasurehunt.css" />
+  <meta name="theme-color" content="#155419" />
+</head>
+
+<body class="center-page">
+  <a class="skip-link" href="#main">コンテンツへスキップ</a>
+  <header class="header" role="banner">
+    <div class="container flex-between">
+      <div class="brand">
+        <img class="logo-mark" src="./image/treasure_icon_3.png" width="36" height="36" alt="宝探しロゴ">
+        <h1 class="logo">Treasure Hunt</h1>
+      </div>
+    </div>
+  </header>
+
+
+  <main role="main" id="main">
+    <div class="center-card" style="text-align:center" aria-live="polite">
+      <h2 id="qrTitle" style="margin-top:0;">QRが読み取られました!ミニゲームをクリアして景品をもらいましょう！</h2>
+      <p id="qrPlace" style="margin:.25rem 0 1rem; color:#6b5e55"></p>
+    </div>
+
+    <div style="display:grid; gap:10px; margin-top:.6rem">
+      <button id="primaryCta" class="btn-start btn--wide">ミニゲームをプレイ</button>
+    </div>
+
+    <!-- 画面内再生用の小枠（今はフルスクリーン再生に切替しているため未使用） -->
+    <div id="videoWrap" class="hidden" style="margin-top:1rem">
+      <video id="rewardVideo" playsinline style="width:min(560px, 100%); border-radius:12px;"></video>
+    </div>
+
+    <p id="goalNote" class="hidden" style="margin:12px 0 0; color:#5a7d70;">
+      お宝を見つけました！<br>ゴールへ進んでクーポンを<br>受け取ってください。
+    </p>
+  </main>
+
+
+
+  <template id="qr-meta" data-total="1" data-video="./image/treasure.mp4" data-points='[
+      {"id":"qr1","name":"グランエミオ所沢"},
+      {"id":"qr2","name":"シティタワー所沢クラッシィ"}
+    ]'></template>
+
+  <script type="module" src="./js/qr.js"></script>
+  <footer class="footer">
+    <p>2025 所沢キャンパス祭 宝探し企画</p>
+  </footer>
+
+</body>
+
+</html>

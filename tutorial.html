@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>遊び方 | 宝探し企画</title>
+  <meta name="description" content="早稲田大学 所沢キャンパス祭 宝探し企画">
+  <link rel="stylesheet" href="./css/reset.css">
+  <link rel="stylesheet" href="./css/treasurehunt.css" />
+  <link rel="stylesheet" href="./css/tutorial.css">
+  <meta name="theme-color" content="#155419" />
+</head>
+
+<body class="center-page">
+  <a class="skip-link" href="#main">コンテンツへスキップ</a>
+
+  <header class="header" role="banner">
+    <div class="container flex-between">
+      <div class="brand">
+        <img class="logo-mark" src="./image/treasure_icon_2.png" width="36" height="36" alt="宝探しロゴ">
+        <h1 class="logo">Treasure Hunt</h1>
+      </div>
+    </div>
+  </header>
+
+
+
+  <main id="main" role="main">
+    <div class="center-card narrow">
+      <div class="tutorial">
+        <section class="section-block" id="howto-block" aria-labelledby="ttl-howto">
+          <h2 id="ttl-howto" class="section-title">遊び方</h2>
+          <ol class="steps">
+            <li>マップの<strong>6つの赤円</strong>からお宝を探索</li>
+            <li><strong>4個以上見つけたら終了可能</strong>（6個でコンプリート）</li>
+            <li>終了後、見つけた数に応じて<strong>くじ引きが引ける（4個=1回 / 5個=2回 / 6個=3回）</strong></li>
+            <li>くじ引きの結果から景品ゲット！</li>
+          </ol>
+        </section>
+
+        <div class="section-sep" aria-hidden="true"></div>
+
+        <section class="section-block" id="prize-block" aria-labelledby="ttl-prize">
+          <h2 id="ttl-prize" class="section-title">景品コーナー</h2>
+
+          <div class="rewards">
+            <article class="reward-card">
+              <div class="place">グランエミオ所沢</div>
+              <div class="reward-line">
+                <span class="badge">クーポン</span>
+                <span class="amount"><strong>輪投げ 50円引き</strong></span>
+              </div>
+            </article>
+
+            <article class="reward-card">
+              <div class="place">シティタワー所沢クラッシィ</div>
+              <div class="reward-line">
+                <span class="badge">クーポン</span>
+                <span class="amount"><strong>レモンスカッシュ 50円引き</strong></span>
+              </div>
+            </article>
+          </div>
+
+          <p class="muted" style="margin-top:.6em;">
+            いずれか1カ所のクリアでOK。スポットに応じて受け取れるクーポンが決まる。
+          </p>
+        </section>
+
+        <div class="section-sep" aria-hidden="true"></div>
+
+
+        <section class="section-block" id="safety-block" aria-labelledby="ttl-safety">
+          <h2 id="ttl-safety" class="section-title">安全に楽しむために</h2>
+          <ul class="bullets">
+            <li>歩きスマホは禁止</li>
+            <li>施設や店舗の迷惑にならないように</li>
+            <li>お困りの点があれば気軽にスタッフへ声かけをお願いします</li>
+          </ul>
+        </section>
+      </div>
+      <div class="cta-row">
+        <button id="startBtn" class="btn-start btn--wide">宝探しスタート！</button>
+      </div>
+
+    </div>
+  </main>
+
+
+
+  <script type="module" src="./js/tutorial.js"></script>
+  <script type="module" src="./js/tutorial-ux.js"></script>
+  <footer class="footer">
+    <p>2025 所沢キャンパス祭 宝探し企画</p>
+  </footer>
+
+</body>
+
+</html>

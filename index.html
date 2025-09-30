@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="早稲田大学 所沢キャンパス祭 宝探し企画" />
+  <title>宝探し企画 | 所沢キャンパス祭</title>
+  <link rel="stylesheet" href="./css/reset.css">
+  <link rel="stylesheet" href="./css/treasurehunt.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#home">コンテンツへスキップ</a>
+
+  <header class="header" role="banner">
+    <div class="container flex-between">
+      <div class="brand">
+        <img class="logo-mark" src="./image/treasure_icon_1.png" width="36" height="36" alt="宝探しロゴ">
+        <h1 class="logo">Treasure Hunt</h1>
+      </div>
+      <nav id="main-nav" aria-label="メインメニュー">
+        <ul id="main-menu" class="nav-list">
+          <li><a href="#home">ホーム</a></li>
+          <li><a href="#howto">遊び方</a></li>
+          <li><a href="#rules">ルール</a></li>
+          <li><a href="#leaderboard">ランキング</a></li>
+          <li><a href="#contact">お問い合わせ</a></li>
+        </ul>
+        <button id="nav-toggle" class="nav-toggle" aria-label="メニューを開閉" aria-controls="main-menu" aria-expanded="false">
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="home">
+    <section class="hero">
+      <div class="hero-content">
+        <h2>早稲田大学 所沢キャンパス祭<br> 宝探し企画</h2>
+        <p>
+          宝探し企画へようこそ！<br>お宝を集めてお得なクーポン券を<br>ゲットしよう!
+        </p>
+        <a href="register.html" class="btn-primary">ゲームスタート</a>
+      </div>
+    </section>
+
+    <section id="howto" class="section">
+      <div class="container">
+        <h2>遊び方</h2>
+        <ol>
+          <li>マップを見ながらお宝を探す</li>
+          <li>QRコードを見つけてスキャン</li>
+          <li>ミニゲームクリアで宝ゲット</li>
+          <li><strong>4個以上見つけたら終了可能</strong>（6個でコンプリート）</li>
+          <li>お宝を見つけ出してお得な<br>クーポン券をゲットしよう！</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="rules" class="section">
+      <div class="container">
+        <h2>ルール</h2>
+        <ul>
+          <li>歩行中のスマホ操作は禁止</li>
+          <li>1グループ1回だけ参加可能</li>
+          <li>ヒントやお宝の場所をSNSに公開しない</li>
+          <li>制限時間はイベント終了時刻まで</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="prize" class="section">
+      <div class="container">
+        <h2>景品とくじ引き</h2>
+        <p>終了後、見つけた数に応じてくじ引き回数が増えます。<br>
+          <strong>4個 → 1回</strong> ／ <strong>5個 → 2回</strong> ／ <strong>6個 → 3回</strong><br>
+          引いた中で<strong>最も等級の高い景品（1等が最上）を1人1つ</strong>獲得可能です。
+      </div>
+    </section>
+
+
+    <section id="leaderboard" class="section">
+      <div class="container">
+        <h2>ランキング</h2>
+        <div id="leaderboard-content" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section id="contact" class="section">
+      <div class="container">
+        <h2>お問い合わせ</h2>
+        <p>主催</p>
+        <p>所沢キャンパス祭実行委員会</p>
+      </div>
+    </section>
+  </main>
+
+  <section class="promo" aria-label="トークショー告知">
+    <div class="promo-wrap">
+      <p class="promo-title">所沢キャンパス祭 <strong>10/19</strong> に来ます！</p>
+
+      <div class="promo-grid">
+        <!-- 梶裕貴 -->
+        <div class="promo-card">
+          <a href="https://t.livepocket.jp/e/kajiyuki" target="_blank" rel="noopener noreferrer"
+            aria-label="梶裕貴 TALK SHOWのチケットページを開く">
+            <img src="./image/kaji.jpg" alt="梶裕貴 TALK SHOW" loading="lazy">
+          </a>
+          <a class="btn-ticket" href="https://t.livepocket.jp/e/kajiyuki" target="_blank" rel="noopener noreferrer">梶裕貴
+            チケットを購入する</a>
+        </div>
+        <!-- 矢吹奈子 -->
+        <div class="promo-card">
+          <a href="https://t.livepocket.jp/e/yabukinako" target="_blank" rel="noopener noreferrer"
+            aria-label="矢吹奈子 TALK SHOWのチケットページを開く">
+            <img src="./image/yabuki.jpg" alt="矢吹奈子 TALK SHOW" loading="lazy">
+          </a>
+          <a class="btn-ticket" href="https://t.livepocket.jp/e/yabukinako" target="_blank"
+            rel="noopener noreferrer">矢吹奈子 チケットを購入する</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>2025 所沢キャンパス祭 宝探し企画</p>
+  </footer>
+  <script type="module" src="./js/index.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const cleared = localStorage.getItem('th_cleared') === '1'; if (!cleared) return;
+      const selectorsStart = ['#startBtn', '#start-button', '[data-role="start"]', 'button.start', 'a.start']; const selectorsContinue = ['#continueBtn', '#continue-button', '[data-role="continue"]', 'button.continue', 'a.continue'];
+      const hide = el => { if (!el) return; el.style.display = 'none'; el.setAttribute('aria-hidden', 'true'); el.tabIndex = -1; };
+      selectorsStart.forEach(s => hide(document.querySelector(s))); selectorsContinue.forEach(s => hide(document.querySelector(s)));
+      document.querySelectorAll('button, a').forEach(el => { const txt = (el.textContent || '').trim(); if (txt.includes('ゲームスタート') || txt.includes('続きから再開')) hide(el); });
+    });
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>参加受付 | 宝探し企画</title>
+  <meta name="description" content="早稲田大学 所沢キャンパス祭 宝探し企画">
+  <link rel="stylesheet" href="./css/reset.css">
+  <link rel="stylesheet" href="./css/treasurehunt.css" />
+  <meta name="theme-color" content="#3e2f25" />
+</head>
+
+<body class="center-page">
+  <a class="skip-link" href="#main">コンテンツへスキップ</a>
+  <header class="header" role="banner">
+    <div class="container flex-between">
+      <div class="brand">
+        <img class="logo-mark" src="./image/treasure_icon_2.png" width="36" height="36" alt="宝探しロゴ">
+        <h1 class="logo">Treasure Hunt</h1>
+      </div>
+    </div>
+  </header>
+
+
+  <main id="main">
+    <div class="center-card narrow" role="form" aria-labelledby="regTitle">
+      <h2 id="regTitle" style="margin-top:0">受付（チーム登録）</h2>
+      <p style="margin:.25rem 0 1rem; color:#6b5e55">
+        チーム情報を登録します
+        <br>登録後はマップで6つのお宝を探索し、<strong>4個以上で終了できます</strong>。
+      </p>
+      <form id="regForm" class="card" novalidate autocomplete="on">
+        <label for="team">チーム名<br>ランキング等で公開します</label>
+        <input type="text" id="team" name="team" maxlength="40" placeholder="例）所沢探索隊" required inputmode="text"
+          aria-describedby="teamHint" />
+
+        <label for="members" style="margin-top:1.25rem">参加人数（1〜10人）</label>
+        <select id="members" name="members" required aria-describedby="memberHint">
+          <option value="1" selected>1人</option>
+          <option value="2">2人</option>
+          <option value="3">3人</option>
+          <option value="4">4人</option>
+          <option value="5">5人</option>
+          <option value="6">6人</option>
+          <option value="7">7人</option>
+          <option value="8">8人</option>
+          <option value="9">9人</option>
+          <option value="10">10人</option>
+        </select>
+        <button type="submit" class="btn-submit btn--wide" style="margin-top:1rem">次へ進む</button>
+      </form>
+
+      <p style="margin:.9rem 0 0; color:#5a7d70; font-size:.95rem;">
+        ※ データはイベント運営のためにのみ利用します。
+      </p>
+    </div>
+  </main>
+
+
+
+  <script type="module" src="./js/register.js"></script>
+  <footer class="footer">
+    <p>2025 所沢キャンパス祭 宝探し企画</p>
+  </footer>
+
+</body>
+
+</html>

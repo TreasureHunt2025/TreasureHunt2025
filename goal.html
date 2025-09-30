@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>ゴール | 前月祭 宝探し企画</title>
+  <meta name="description" content="早稲田大学 所沢キャンパス祭 宝探し企画">
+  <link rel="stylesheet" href="./css/reset.css" />
+  <link rel="stylesheet" href="./css/treasurehunt.css" />
+  <meta name="theme-color" content="#3e2f25" />
+</head>
+
+<body class="center-page">
+  <a class="skip-link" href="#main">コンテンツへスキップ</a>
+  <header class="header" role="banner">
+    <div class="container flex-between">
+      <div class="brand">
+        <img class="logo-mark" src="./image/treasure_icon_2.png" width="36" height="36" alt="宝探しロゴ">
+        <h1 class="logo">Treasure Hunt</h1>
+      </div>
+    </div>
+  </header>
+
+  <main role="main" id="main">
+    <div class="center-card" role="status" aria-live="polite">
+      <h2 style="margin-top:0">ゴールおめでとう！🎉</h2>
+      <div class="time" id="timeDisplay">計測中…</div>
+      <dl class="result" style="margin:.6rem 0 1rem;">
+        <div class="result__row">
+          <dt>宝</dt>
+          <dd id="resultTreasures">-</dd>
+        </div>
+        <div class="result__row">
+          <dt>チーム</dt>
+          <dd id="resultTeam">-</dd>
+        </div>
+        <div class="result__row">
+          <dt>人数</dt>
+          <dd id="resultMembers">-</dd>
+        </div>
+
+      </dl>
+
+      <div id="saveStatus" class="save-status"></div>
+
+      <section class="proof" style="margin-top:1rem;">
+        <h3 style="margin:.2rem 0 .5rem;">スタッフ確認</h3>
+        <div class="proof__wrap" style="display:flex; justify-content:center; gap:16px; align-items:center; flex-wrap:wrap;">
+          <canvas id="goalQr" width="220" height="220"
+            style="background:#fff;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.08)"></canvas>
+        </div>
+      </section>
+
+      <p style="margin:8px 0 0;color:red">
+        スクリーンショット推奨
+      </p>
+      <p style="margin:8px 0 0;color:#6b5e55">
+        この画面または確認ページで<br>スタッフがチェックし前月祭<br>で使えるクーポン券と交換します。
+      </p>
+
+      <div style="display:flex; gap:10px; justify-content:center; margin-top:1rem; flex-wrap:wrap;">
+        <button id="rankBtn" class="btn-go primary">ランキングを見る</button>
+      </div>
+    </div>
+  </main>
+
+  <section class="promo" aria-label="トークショー告知">
+    <div class="promo-wrap">
+      <p class="promo-title">所沢キャンパス祭 <strong>10/19</strong> に来ます！</p>
+
+      <div class="promo-grid">
+        <!-- 梶裕貴 -->
+        <div class="promo-card">
+          <a href="https://t.livepocket.jp/e/kajiyuki" target="_blank" rel="noopener noreferrer"
+            aria-label="梶裕貴 TALK SHOWのチケットページを開く">
+            <img src="./image/kaji.jpg" alt="梶裕貴 TALK SHOW" loading="lazy">
+          </a>
+          <a class="btn-ticket" href="https://t.livepocket.jp/e/kajiyuki" target="_blank" rel="noopener noreferrer">梶裕貴
+            チケットを購入する</a>
+        </div>
+        <!-- 矢吹奈子 -->
+        <div class="promo-card">
+          <a href="https://t.livepocket.jp/e/yabukinako" target="_blank" rel="noopener noreferrer"
+            aria-label="矢吹奈子 TALK SHOWのチケットページを開く">
+            <img src="./image/yabuki.jpg" alt="矢吹奈子 TALK SHOW" loading="lazy">
+          </a>
+          <a class="btn-ticket" href="https://t.livepocket.jp/e/yabukinako" target="_blank"
+            rel="noopener noreferrer">矢吹奈子 チケットを購入する</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="./js/goal.js"></script>
+  <footer class="footer">
+    <p>2025 所沢キャンパス祭 宝探し企画</p>
+  </footer>
+
+</body>
+
+</html>

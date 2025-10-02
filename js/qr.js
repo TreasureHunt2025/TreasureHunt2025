@@ -17,9 +17,14 @@ function yyyymmddJST() {
 }
 
 const TOKEN_TABLE = Object.freeze({
-  "TH-GOAL-GRAND": "qr1", // グランエミオ所沢
-  "TH-GOAL-CITY": "qr2", // シティタワー所沢クラッシィ
-  // 旧（必要なら片方だけ残す）
+  "TH-GOAL-GRAND": "qr1",
+  "TH-GOAL-CITY": "qr2",
+  "TH-QR1": "qr1",
+  "TH-QR2": "qr2",
+  "TH-QR3": "qr3",
+  "TH-QR4": "qr4",
+  "TH-QR5": "qr5",
+  "TH-QR6": "qr6",
   "G7fS9LzA": "qr1",
   "T9nDv4We": "qr2"
 });
@@ -28,12 +33,16 @@ async function init() {
   // ===== メタ（qr.html内template 未変更でも動くが、可能なら data-total="1" に） =====
   const metaEl = document.getElementById("qr-meta");
   const META = metaEl?.dataset || {};
-  const TOTAL = 1; // ← 強制 1 個で終了
+  const TOTAL = 6; // ← 強制 1 個で終了
   const VIDEO_SRC = META.video || "./image/treasure.mp4";
   const POINTS = [
-    { "id": "qr1", "name": "グランエミオ所沢" },
-    { "id": "qr2", "name": "シティタワー所沢クラッシィ" }
-  ];
+  { id: "qr1", name: "treasure1" },
+  { id: "qr2", name: "treasure2" },
+  { id: "qr3", name: "treasure3" },
+  { id: "qr4", name: "treasure4" },
+  { id: "qr5", name: "treasure5" },
+  { id: "qr6", name: "treasure6" }
+];
 
   // ===== HUD =====
   const totalCountEl = document.getElementById("totalCount");
@@ -61,6 +70,7 @@ async function init() {
 
   try {
     const teamSnap = await getDoc(doc(db, "teams", uid));
+  let REQUIRED = 4;
     const team = teamSnap.exists() ? teamSnap.data() : null;
     const today = (() => {
       const p = new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
@@ -102,7 +112,9 @@ async function init() {
   updateHUD();
 
   const teamSnap = await getDoc(doc(db, "teams", uid));
+  let REQUIRED = 4;
   const team = teamSnap.data();
+  if (team && Number.isFinite(Number(team.goalRequired))) REQUIRED = Number(team.goalRequired);
   if (team?.redeemedAt) {
     titleEl.textContent = "このチームは引き換え済みです";
     placeEl.textContent = "ゲームは終了しています。";
@@ -120,7 +132,7 @@ async function init() {
       titleEl && (titleEl.textContent = "このスポットはクリア済みです");
       placeEl && (placeEl.textContent = "次のスポットへお進みください。");
 
-      if (count >= TOTAL) {
+      if (count >= TOTAL) { window.location.href = "./goal.html"; } else if (count >= REQUIRED) { try { localStorage.setItem("canFinish","1"); } catch(e){} } else if (
         try { localStorage.setItem('th_cleared', '1'); } catch { }
         goalNote?.classList.remove("hidden");
         setPrimaryCTA("クーポン券を受け取る", () => {
@@ -142,6 +154,7 @@ async function init() {
       progressBarEl && (progressBarEl.style.width = `${Math.min(100, (count / TOTAL) * 100)}%`);
 
       const teamSnap = await getDoc(doc(db, "teams", uid));
+  let REQUIRED = 4;
       if (teamSnap.exists() && teamSnap.data().startTime) {
         const startMs = teamSnap.data().startTime.toMillis();
         elapsedTimeEl && (elapsedTimeEl.textContent = fmt(Date.now() - startMs));
@@ -317,7 +330,7 @@ async function init() {
       if (!ok) return;
       await updateHUD();
       const count = (await getDocs(collection(db, "teams", uid, "points"))).size;
-      if (count >= TOTAL) {
+      if (count >= TOTAL) { window.location.href = "./goal.html"; } else if (count >= REQUIRED) { try { localStorage.setItem("canFinish","1"); } catch(e){} } else if (
         try { localStorage.setItem('th_cleared', '1'); } catch { }
         await saveElapsedIfNeeded(uid);
         goalNote?.classList.remove("hidden");
@@ -394,4 +407,12 @@ function ensureMovieLayer() {
     </div>`;
   document.body.appendChild(layer);
   document.getElementById("mvClose")?.addEventListener("click", () => { layer.style.display = "none"; const v = document.getElementById("moviePlayer"); v && (v.pause(), v.removeAttribute("src"), v.load()); });
+}
+
+function maybeFinish(count, REQUIRED, TOTAL) {
+  if (count >= TOTAL) {
+    window.location.href = "./goal.html";
+  } else if (count >= REQUIRED) {
+    try { localStorage.setItem("canFinish","1"); } catch(e){}
+  }
 }

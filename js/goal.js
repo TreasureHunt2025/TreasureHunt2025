@@ -76,10 +76,11 @@ async function finalize() {
     if (!teamSnap.exists()) { timeEl.textContent = "チームデータが見つかりません。"; setButtonsIncomplete(); return; }
 
     const data = teamSnap.data();
+    REQUIRED = Number(data.goalRequired ?? 4);
     const teamName = data.teamName || "-";
     const members = data.members || 0;
 
-    const REQUIRED = 1;
+    let REQUIRED = 4;
     const ps = await getDocs(collection(db, "teams", uid, "points"));
     const found = ps.size;
 
@@ -88,7 +89,7 @@ async function finalize() {
     if (treEl) treEl.textContent = `${found} / ${REQUIRED}`;
     if (found < REQUIRED) {
       timeEl.textContent = "まだゴール条件を満たしていません。";
-      saveEl.textContent = "City または Grand のどちらか1箇所でクリアしてください。";
+      saveEl.textContent = "お宝を規定数（4個以上）集めてからゴールしてください。";
       setButtonsIncomplete();
       return;
     }

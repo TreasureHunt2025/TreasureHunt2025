@@ -52,7 +52,7 @@ if (form) {
       const ages = []; // ages removed in this event
 
       const payload = {
-        teamName, members, goalRequired: 1,
+        teamName, members, goalRequired: 4,
         playDay: yyyymmddJST(),
         startTime: serverTimestamp()
       };

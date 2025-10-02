@@ -1,3 +1,24 @@
+
+// Default 6 treasures if not provided by template; dummy coordinates
+const DEFAULT_TREASURES = [
+  { id: "qr1", name: "treasure1", lat: 35.7975, lng: 139.4690, r: 70 },
+  { id: "qr2", name: "treasure2", lat: 35.7982, lng: 139.4702, r: 70 },
+  { id: "qr3", name: "treasure3", lat: 35.7969, lng: 139.4710, r: 70 },
+  { id: "qr4", name: "treasure4", lat: 35.7978, lng: 139.4720, r: 70 },
+  { id: "qr5", name: "treasure5", lat: 35.7990, lng: 139.4713, r: 70 },
+  { id: "qr6", name: "treasure6", lat: 35.7986, lng: 139.4696, r: 70 },
+];
+
+function normalizeToTreasures(arr) {
+  return arr.map((p, i) => ({
+    id: p.id || `qr${i+1}`,
+    name: `treasure${i+1}`,
+    lat: p.lat ?? p.latitude ?? 35.797 + 0.001 * i,
+    lng: p.lng ?? p.longitude ?? 139.469 + 0.001 * i,
+    r: p.r ?? p.radius ?? 70
+  })).slice(0,6);
+}
+
 "use strict";
 const ALLOWED = ["https://tokosai.net", "https://www.tokosai.net", "http://localhost:5500", "https://fistkk71.github.io"];
 /* ---------- DOM ---------- */
@@ -253,7 +274,7 @@ function redrawCircles() {
   circlesById.clear();
 
   const points = Array.isArray(cfg.qrPoints) ? cfg.qrPoints : [];
-  const EXCLUDE_IDS = new Set([ "EMITERACE", "emiterace", "emi"]);
+  const EXCLUDE_IDS = new Set([]);
 
   for (const p of points) {
     if (!p?.id || !Number.isFinite(p.lat) || !Number.isFinite(p.lng)) continue;
@@ -535,3 +556,60 @@ window.markTreasureFound = function (id) {
     if (e.key === "Escape" && !wrap.classList.contains("hidden")) stopScan();
   });
 })();
+
+
+function ensureFinishButton() {
+  if (document.getElementById("finish-btn")) return;
+  const b = document.createElement("button");
+  b.id = "finish-btn";
+  b.textContent = "終了する";
+  Object.assign(b.style, {
+    position: "fixed",
+    right: "16px",
+    bottom: "24px",
+    zIndex: 9999,
+    padding: "12px 16px",
+    borderRadius: "12px",
+    fontSize: "16px",
+    boxShadow: "0 2px 8px rgba(0,0,0,.2)"
+  });
+  b.onclick = () => { window.location.href = "./goal.html"; };
+  document.body.appendChild(b);
+  b.style.display = "none";
+}
+
+async function updateFinishVisibility() {
+  try { ensureFinishButton(); } catch(e) {}
+  let REQUIRED = 4, TOTAL = 6;
+  try {
+    const auth = getAuth();
+    if (auth.currentUser) {
+      const uid = auth.currentUser.uid;
+      const teamSnap = await getDoc(doc(db, "teams", uid));
+      if (teamSnap.exists()) {
+        const t = teamSnap.data();
+        if (Number.isFinite(Number(t.goalRequired))) REQUIRED = Number(t.goalRequired);
+      }
+      const sub = collection(db, "teams", uid, "points");
+      const qs = await getDocs(sub);
+      const count = qs.size;
+      if (count >= TOTAL) { window.location.href = "./goal.html"; return; }
+      const btn = document.getElementById("finish-btn");
+      if (!btn) return;
+      btn.style.display = (count >= REQUIRED) ? "block" : "none";
+    } else {
+      const found = JSON.parse(localStorage.getItem("found") || "[]");
+      const count = Array.isArray(found) ? found.length : 0;
+      if (count >= TOTAL) { window.location.href = "./goal.html"; return; }
+      const btn = document.getElementById("finish-btn");
+      if (!btn) return;
+      btn.style.display = (count >= REQUIRED) ? "block" : "none";
+    }
+  } catch(e) {}
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  ensureFinishButton();
+  updateFinishVisibility();
+  setInterval(updateFinishVisibility, 4000);
+});

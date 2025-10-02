@@ -1200,3 +1200,58 @@ body.scanner-open .footer {
     inline-size: 1.55em; block-size: 1.55em; font-size: .9em;
   }
 }
+
+
+/* ===============================
+   Finish Button (Map)
+=============================== */
+#finish-btn{
+  position: fixed;
+  right: max(16px, calc(12px + var(--sar)));
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  z-index: 2500;
+  background: var(--btn-yellow);
+  color: #101010;
+  border: 2px solid #c59b1e;
+  border-radius: 14px;
+  padding: 12px 18px;
+  font-weight: 900;
+  font-size: 16px;
+  box-shadow: 0 8px 18px rgba(0,0,0,.16);
+  transition: transform .06s ease, filter .15s ease, opacity .15s ease;
+}
+#finish-btn:hover{ filter: brightness(1.02); }
+#finish-btn:active{ transform: translateY(1px); }
+#finish-btn[hidden]{ display:none !important; }
+
+@media (max-width: 480px){
+  #finish-btn{
+    right: max(12px, calc(10px + var(--sar)));
+    padding: 12px 16px;
+    font-size: 15px;
+  }
+}
+
+.muted-ink{ color: var(--muted); }
+
+
+/* Map full-viewport height with dynamic viewport units */
+@supports (height: 100dvh){
+  .map-page main{ top: 0; bottom: 0; height: 100dvh; }
+  .map-page #map{ height: 100dvh; }
+}
+
+
+
+/* Mobile: avoid fixed background for smoother scrolling */
+@media (max-width: 820px){
+  body{ background-attachment: scroll !important; }
+}
+
+
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce){
+  *{ animation: none !important; transition: none !important; }
+}
+

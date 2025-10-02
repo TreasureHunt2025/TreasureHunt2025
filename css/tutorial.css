@@ -1,8 +1,7 @@
-/* Tutorial Readability — fluid type, short line length, comfy spacing */
-:root{
+:root {
   --fs-body: clamp(16px, 0.9rem + 0.9vw, 20px);
-  --fs-h1:   clamp(26px, 1.2rem + 3.2vw, 38px);
-  --fs-h2:   clamp(20px, 1.1rem + 1.6vw, 28px);
+  --fs-h1: clamp(26px, 1.2rem + 3.2vw, 38px);
+  --fs-h2: clamp(20px, 1.1rem + 1.6vw, 28px);
   --lh: 1.75;
   --measure: 60ch;
   --pad: clamp(16px, 3vw, 28px);
@@ -12,11 +11,10 @@
   --ink: #0e0f0f;
   --muted: #4a4a4a;
   --paper: #fff;
-  --shadow: 0 1px 0 rgba(0,0,0,.06), 0 6px 18px rgba(0,0,0,.06);
+  --shadow: 0 1px 0 rgba(0, 0, 0, .06), 0 6px 18px rgba(0, 0, 0, .06);
 }
 
-/* チュートリアル本文の親要素に .tutorial を付ける */
-.tutorial{
+.tutorial {
   font-size: var(--fs-body);
   line-height: var(--lh);
   color: var(--ink);
@@ -33,19 +31,29 @@
   text-wrap: pretty;
 }
 
-/* 見出し */
 .tutorial h1,
-.tutorial h2{
+.tutorial h2 {
   color: var(--accent);
   letter-spacing: .02em;
   margin: 0 0 .5em;
 }
-.tutorial h1{ font-size: var(--fs-h1); line-height: 1.22; }
-.tutorial h2{ font-size: var(--fs-h2); line-height: 1.3; margin-top: 1.1em; }
-.tutorial p{ margin: 0 0 .85em; }
 
-/* 手順（番号付きカード） */
-.tutorial ol{
+.tutorial h1 {
+  font-size: var(--fs-h1);
+  line-height: 1.22;
+}
+
+.tutorial h2 {
+  font-size: var(--fs-h2);
+  line-height: 1.3;
+  margin-top: 1.1em;
+}
+
+.tutorial p {
+  margin: 0 0 .85em;
+}
+
+.tutorial ol {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -53,7 +61,8 @@
   display: grid;
   gap: var(--gap);
 }
-.tutorial ol > li{
+
+.tutorial ol>li {
   counter-increment: step;
   display: grid;
   grid-template-columns: auto 1fr;
@@ -64,10 +73,14 @@
   box-shadow: var(--shadow);
   padding: .9em 1em;
 }
-@media (min-width: 720px){
-  .tutorial ol > li{ padding: 1em 1.15em; }
+
+@media (min-width: 720px) {
+  .tutorial ol>li {
+    padding: 1em 1.15em;
+  }
 }
-.tutorial ol > li::before{
+
+.tutorial ol>li::before {
   content: counter(step);
   display: grid;
   place-items: center;
@@ -81,20 +94,21 @@
   margin-top: .08em;
 }
 
-/* 注意事項（箇条書き） */
-.tutorial ul{
+.tutorial ul {
   padding: 0;
   margin: .2em 0 0;
   display: grid;
   gap: .55em;
   list-style: none;
 }
-.tutorial ul > li{
+
+.tutorial ul>li {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: .6em;
 }
-.tutorial ul > li::before{
+
+.tutorial ul>li::before {
   content: "•";
   color: var(--accent);
   font-size: 1.2em;
@@ -102,25 +116,32 @@
   translate: 0 .08em;
 }
 
-/* 補助 */
-.tutorial .muted{ color: var(--muted); }
-.tutorial .note{ background: #f7fbf7; border: 1px solid #dce8df; padding: .8em 1em; border-radius: 10px; }
-
-/* 低モーション環境 */
-@media (prefers-reduced-motion: reduce){
-  *{ animation: none !important; transition: none !important; }
+.tutorial .muted {
+  color: var(--muted);
 }
 
+.tutorial .note {
+  background: #f7fbf7;
+  border: 1px solid #dce8df;
+  padding: .8em 1em;
+  border-radius: 10px;
+}
 
-/* A11y utility */
-.sr-only{
-  position:absolute !important;
-  width:1px !important;
-  height:1px !important;
-  padding:0 !important;
-  margin:-1px !important;
-  overflow:hidden !important;
-  clip:rect(0,0,0,0) !important;
-  white-space:nowrap !important;
-  border:0 !important;
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }

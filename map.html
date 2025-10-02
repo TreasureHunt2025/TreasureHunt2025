@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>マップ | 前月祭 宝探し企画</title>
+  <meta name="description" content="早稲田大学 所沢キャンパス祭 宝探し企画" />
+  <title>マップ | 宝探し企画</title>
   <link rel="stylesheet" href="./css/reset.css" />
   <link rel="stylesheet" href="./css/treasurehunt.css" />
   <meta name="theme-color" content="#155419" />
@@ -61,7 +62,9 @@
     </div>
   </footer>
 
-  <template id="map-config" data-geojson="./tokorozawa.geojson" data-initial-zoom="16" data-qr-points='[{"id": "qr1", "name": "treasure1", "lat": 35.7877068014553, "lng": 139.3993037267694}, {"id": "qr2", "name": "treasure2", "lat": 35.785353966985085, "lng": 139.39878154731983}, {"id": "qr3", "name": "treasure3", "lat": 35.78864444263647, "lng": 139.39948253818648}, {"id": "qr4", "name": "treasure4", "lat": 35.78769165849726, "lng": 139.39861191131166}, {"id": "qr5", "name": "treasure5", "lat": 35.7895, "lng": 139.4003}, {"id": "qr6", "name": "treasure6", "lat": 35.7869, "lng": 139.4009}]' data-qr-hints='[{"id": "qr1", "hint": "treasure1 を探そう"}, {"id": "qr2", "hint": "treasure2 を探そう"}, {"id": "qr3", "hint": "treasure3 を探そう"}, {"id": "qr4", "hint": "treasure4 を探そう"}]'>
+  <template id="map-config" data-geojson="./tokorozawa.geojson" data-initial-zoom="16"
+    data-qr-points='[{"id": "qr1", "name": "treasure1", "lat": 35.7877068014553, "lng": 139.3993037267694}, {"id": "qr2", "name": "treasure2", "lat": 35.785353966985085, "lng": 139.39878154731983}, {"id": "qr3", "name": "treasure3", "lat": 35.78864444263647, "lng": 139.39948253818648}, {"id": "qr4", "name": "treasure4", "lat": 35.78769165849726, "lng": 139.39861191131166}, {"id": "qr5", "name": "treasure5", "lat": 35.7895, "lng": 139.4003}, {"id": "qr6", "name": "treasure6", "lat": 35.7869, "lng": 139.4009}]'
+    data-qr-hints='[{"id": "qr1", "hint": "treasure1 を探そう"}, {"id": "qr2", "hint": "treasure2 を探そう"}, {"id": "qr3", "hint": "treasure3 を探そう"}, {"id": "qr4", "hint": "treasure4 を探そう"}]'>
   </template>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" defer></script>
   <script src="./js/map.js"></script>

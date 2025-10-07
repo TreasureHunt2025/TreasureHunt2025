@@ -145,3 +145,31 @@
   white-space: nowrap !important;
   border: 0 !important;
 }
+
+.center-page p,
+.center-page li,
+.center-page h1,
+.center-page h2,
+.center-page h3,
+.center-page .card,
+.center-page .card * {
+  writing-mode: horizontal-tb !important;
+  white-space: normal !important;
+  word-break: normal !important;
+}
+
+.center-page .howto-grid,
+.center-page .cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--gap, 14px);
+}
+
+.center-page p,
+.center-page li {
+  line-height: 1.75;
+  letter-spacing: .02em;
+}
+
+.tutorial ol>li,
+.tutorial ul>li { display: grid; }

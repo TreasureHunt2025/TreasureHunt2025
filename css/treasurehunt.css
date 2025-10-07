@@ -15,10 +15,6 @@
   --footer-height: 56px;
 }
 
-html,
-body {
-  height: 100%
-}
 
 body {
   background: var(--bg);
@@ -1215,4 +1211,17 @@ body.scanner-open .footer {
     animation: none !important;
     transition: none !important;
   }
+}
+
+html, body {
+  min-height: 100%;
+}
+
+.card {
+  background: rgba(255,255,255,.85) !important;
+  backdrop-filter: blur(2px);
+}
+
+.section {
+  background: transparent;
 }

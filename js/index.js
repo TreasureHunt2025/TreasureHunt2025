@@ -1,17 +1,10 @@
-const ALLOWED = ["https://tokosai.net", "https://www.tokosai.net", "http://localhost:5500", "https://fistkk71.github.io"];
-import { db } from "./firebase-init.js";
+import { db, ensureAuthed } from "./firebase-init.js";
 import {
   collection, query, where, orderBy, limit, onSnapshot, getDocs,
   doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-function yyyymmddJST() {
-  const p = new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit" })
-    .formatToParts(new Date());
-  return `${p.find(x => x.type === "year").value}${p.find(x => x.type === "month").value}${p.find(x => x.type === "day").value}`;
-}
-
-/* ---------- ナビ開閉（全ページ共通パターン） ---------- */
+/* ---------- ナビ開閉（共通） ---------- */
 const navToggle = document.getElementById("nav-toggle");
 const mainMenu = document.getElementById("main-menu");
 if (navToggle && mainMenu) {
@@ -23,9 +16,14 @@ if (navToggle && mainMenu) {
   });
 }
 
-/* ---------- util: 時間表示 mm分ss秒（>1h なら h時間mm分ss秒） ---------- */
+/* ---------- util ---------- */
+function yyyymmddJST() {
+  const p = new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit" })
+    .formatToParts(new Date());
+  return `${p.find(x => x.type === "year").value}${p.find(x => x.type === "month").value}${p.find(x => x.type === "day").value}`;
+}
 function formatDuration(ms) {
-  const totalSec = Math.floor(ms / 1000);
+  const totalSec = Math.floor((ms || 0) / 1000);
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;
@@ -63,7 +61,6 @@ if (leaderboardRoot) {
   };
 
   let fallbackTimer = null;
-
   const unsubscribe = onSnapshot(
     q,
     (snap) => {
@@ -72,67 +69,63 @@ if (leaderboardRoot) {
     },
     async (err) => {
       console.warn("[leaderboard] realtime disabled; fallback to polling:", err);
-      try { unsubscribe?.(); } catch { }
+      try { unsubscribe?.(); } catch { /* noop */ }
       await renderOnce();
       fallbackTimer = setInterval(renderOnce, 15000);
     }
   );
 }
 
-
-/* ---------- 「続きから再開」ボタン ---------- */
+/* ---------- ヒーロー部：続き/制限/引換QR 再表示 ---------- */
 (async () => {
+  const hero = document.querySelector(".hero-content");
+  if (!hero) return;
+
   try {
-    const uid = localStorage.getItem("uid");
+    const user = await ensureAuthed();
+    const uid = user?.uid;
     if (!uid) return;
 
-    const docSnap = await getDoc(doc(db, "teams", uid));
-    if (docSnap.exists() && !docSnap.data().elapsed) {
+    const ref = doc(db, "teams", uid);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+
+    const team = snap.data();
+    const today = yyyymmddJST();
+
+    // 1) 続きから再開（elapsed 未保存＝ゴール前）
+    if (!team.elapsed) {
       const btn = document.createElement("a");
       btn.href = `map.html?uid=${encodeURIComponent(uid)}`;
       btn.className = "btn-primary";
       btn.style.marginLeft = "0.6rem";
       btn.textContent = "続きから再開";
-      document.querySelector(".hero-content")?.appendChild(btn);
+      hero.appendChild(btn);
     }
-  } catch (_) {
-  }
-})();
 
-(async () => {
-  try {
-    const uid = localStorage.getItem("uid");
-    if (!uid) return;
-
-    const team = (await getDoc(doc(db, "teams", uid))).data();
-    if (!team) return;
-
-    const today = yyyymmddJST();
+    // 2) 本日の参加は終了（同一日 && 引換済み）
     if (team.playDay === today && team.redeemedAt) {
-      const a = document.querySelector('.hero-content a[href$="register.html"]'); if (a) {
+      const a = document.querySelector('.hero-content a[href$="register.html"]');
+      if (a) {
         a.setAttribute("aria-disabled", "true");
         a.classList.add("btn-disabled");
-        a.onclick = (e) => e.preventDefault();
+        a.addEventListener("click", (e) => e.preventDefault());
         a.textContent = "本日の参加は終了しました";
       }
-      const hero = document.querySelector(".hero-content p");
-      if (hero) hero.textContent = "1日1回の参加となります";
+      const p = hero.querySelector("p");
+      if (p) p.textContent = "1日1回の参加となります";
     }
-  } catch (_) { }
-})();
 
-(async () => {
-  try {
-    const uid = localStorage.getItem("uid");
-    if (!uid) return;
-    const team = (await getDoc(doc(db, "teams", uid))).data();
-    if (team?.elapsed && !team?.redeemedAt) {
+    // 3) 引換QRを再表示（elapsed 済み && まだ redeemedAt なし）
+    if (team.elapsed && !team.redeemedAt) {
       const btn = document.createElement("a");
-      btn.href = "goal.html";            // uid なしでOK（localStorageから読む）
+      btn.href = `goal.html?uid=${encodeURIComponent(uid)}`;
       btn.className = "btn-secondary";
       btn.style.marginLeft = "0.6rem";
       btn.textContent = "景品引換QRを再表示";
-      document.querySelector(".hero-content")?.appendChild(btn);
+      hero.appendChild(btn);
     }
-  } catch(_) {}
+  } catch (e) {
+    console.warn("[index] hero section skipped:", e);
+  }
 })();

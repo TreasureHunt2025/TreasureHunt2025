@@ -8,11 +8,10 @@
   <title>遊び方 | 宝探し企画</title>
   <link rel="stylesheet" href="./css/reset.css">
   <link rel="stylesheet" href="./css/treasurehunt.css" />
-  <link rel="stylesheet" href="./css/tutorial.css">
   <meta name="theme-color" content="#155419" />
 </head>
 
-<body class="center-page">
+<body class="center-page tutorial-page">
   <a class="skip-link" href="#main">コンテンツへスキップ</a>
 
   <header class="header" role="banner">
@@ -29,75 +28,33 @@
       <div class="tutorial">
         <section class="section-block" id="howto-block" aria-labelledby="ttl-howto">
           <h2 id="ttl-howto" class="section-title">遊び方</h2>
-          <ol class="steps">
-            <li>マップの6つの赤円からお宝を探索</li>
-            <li>4個以上お宝を見つけたら終了可能</li>
-            <p class="muted step-note" style="margin-top:.6em;">
-              最大6個見つけるまで探索可能
-            </p>
-            <li>終了後、見つけた数に応じてくじ引きが引ける</li>
-            <p class="muted step-note" style="margin-top:.6em;">
-              4個ならくじ引き1回<br>
-              5個ならくじ引き2回<br>
-              6個ならくじ引き3回<br>
-              ※獲得できる景品は1つだけ
-            </p>
-            <li>くじ引きの結果から景品を1人1つゲット！</li>
-          </ol>
+          <script>window.TUTORIAL_PDF_URL = "./宝探し受付用資料.pdf";</script>
+
+          <div id="slides" class="slides" role="region" aria-label="チュートリアルスライド" aria-live="polite"></div>
         </section>
 
-        <div class="section-sep" aria-hidden="true"></div>
-
+        <!-- 景品コーナー -->
         <section class="section-block" id="prize-block" aria-labelledby="ttl-prize">
           <h2 id="ttl-prize" class="section-title">目玉景品！</h2>
-
           <div class="rewards">
             <article class="reward-card">
               <div class="place">1等</div>
-
-              <div class="reward-line">
-                <span class="amount"><strong>調整中</strong></span>
-              </div>
-
-              <div class="reward-line">
-                <span class="amount"><strong>調整中</strong></span>
-              </div>
-
-              <div class="reward-line">
-                <span class="amount"><strong>調整中</strong></span>
-              </div>
+              <div class="reward-line"><span class="amount"><strong>調整中</strong></span></div>
+              <div class="reward-line"><span class="amount"><strong>調整中</strong></span></div>
+              <div class="reward-line"><span class="amount"><strong>調整中</strong></span></div>
             </article>
-
             <article class="reward-card">
               <div class="place">2等</div>
-              <div class="reward-line">
-                <span class="amount"><strong>調整中</strong></span>
-              </div>
+              <div class="reward-line"><span class="amount"><strong>調整中</strong></span></div>
             </article>
-
-            <p class="muted step-note" style="margin-top:.6em;">
-              景品は1等から5等まで約300個
-            </p>
+            <p class="muted step-note" style="margin-top:.6em;">景品は約300個用意！</p>
           </div>
 
-
-        </section>
-
-        <div class="section-sep" aria-hidden="true"></div>
-
-        <section class="section-block" id="safety-block" aria-labelledby="ttl-safety">
-          <h2 id="ttl-safety" class="section-title">安全に楽しむために</h2>
-          <ul class="bullets">
-            <li>歩きスマホは禁止</li>
-            <li>施設や店舗の迷惑にならないように</li>
-            <li>お困りの点があれば気軽にスタッフへ声かけをお願いします</li>
-          </ul>
+          <div class="next-row" style="margin-top:18px; display:flex; justify-content:center;">
+            <button id="startBtn" class="btn-start btn--wide">ゲームを始める</button>
+          </div>
         </section>
       </div>
-      <div class="cta-row">
-        <button id="startBtn" class="btn-start btn--wide">宝探しスタート！</button>
-      </div>
-
     </div>
   </main>
 
@@ -105,7 +62,6 @@
   <footer class="footer">
     <p>2025 所沢キャンパス祭 宝探し企画</p>
   </footer>
-
 </body>
 
 </html>

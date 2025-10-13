@@ -1259,3 +1259,43 @@ body {
   grid-column: 2;
   min-width: 0;
 }
+
+body.tutorial-page #slides canvas {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+body.tutorial-page .slide-badge {
+  display: none;
+}
+
+/* 念のため：残っていても非表示 */
+/* === tutorial.html専用（他ページ非影響）: ページ番号バッジと余白 === */
+body.tutorial-page .slide {
+  position: relative;
+  padding: 14px 10px 12px;
+  /* 上に少しだけ余白を作り、バッジの置き場にする */
+}
+
+body.tutorial-page .page-badge {
+  position: absolute;
+  top: 6px;
+  /* 見出しと被らない程度に */
+  right: 10px;
+  background: rgba(0, 0, 0, .55);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  padding: .38rem .6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  z-index: 2;
+}
+
+/* 念のため：キャンバスは親幅にフィット（縦スクロールの見やすさ重視） */
+body.tutorial-page #slides canvas {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}

@@ -67,7 +67,7 @@
     </div>
   </footer>
 
-  <template id="map-config" data-geojson="./tokorozawa.geojson" data-initial-zoom="16"
+  <template id="map-config" data-geojson="./tokorozawa.json" data-initial-zoom="16"
     data-qr-points='[
       {"id": "qr1", "name": "101号館", "lat": 35.788699, "lng": 139.399466}, 
       {"id": "qr2", "name": "1年生企画", "lat": 35.786451, "lng": 139.399485},
@@ -77,13 +77,17 @@
       {"id": "qr6", "name": "ステージ", "lat": 35.786633, "lng": 139.399795}]'
     data-qr-hints='[
     {"id": "qr1", "hint": "お笑いライブがあるらしい！"},
-    {"id": "qr2", "hint": "treasure2 を探そう"},
-    {"id": "qr3", "hint": "treasure3 を探そう"},
-    {"id": "qr4", "hint": "treasure4 を探そう"}]'>
+    {"id": "qr2", "hint": "怖〜い場所に行ってみよう"},
+    {"id": "qr3", "hint": "今年もあの仮面が！？"},
+    {"id": "qr4", "hint": "ゲームの世界観に飛び込んでみよう！"},
+    {"id": "qr5", "hint": "爽やかな味を楽しんでみよう！"},
+    {"id": "qr6", "hint": "早稲田といえば大規模なステージ！"}
+    ]'>
+    
   </template>
 
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" defer></script>
-  <script src="./js/map.js"></script>
+  <script type="module" src="./js/map.js"></script>
   <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBy_Oh_oRHjntjRW-g48N-oEovSsqClREc&callback=initMap&v=weekly&loading=async"
     defer>

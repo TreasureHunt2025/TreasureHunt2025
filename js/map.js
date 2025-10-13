@@ -1,22 +1,22 @@
 
 // Default 6 treasures if not provided by template; dummy coordinates
 const DEFAULT_TREASURES = [
-  { id: "qr1", name: "treasure1", lat: 35.7975, lng: 139.4690, r: 70 },
-  { id: "qr2", name: "treasure2", lat: 35.7982, lng: 139.4702, r: 70 },
-  { id: "qr3", name: "treasure3", lat: 35.7969, lng: 139.4710, r: 70 },
-  { id: "qr4", name: "treasure4", lat: 35.7978, lng: 139.4720, r: 70 },
-  { id: "qr5", name: "treasure5", lat: 35.7990, lng: 139.4713, r: 70 },
-  { id: "qr6", name: "treasure6", lat: 35.7986, lng: 139.4696, r: 70 },
+  { id: "qr1", name: "treasure1", lat: 35.7975, lng: 139.4690, r: 30 },
+  { id: "qr2", name: "treasure2", lat: 35.7982, lng: 139.4702, r: 30 },
+  { id: "qr3", name: "treasure3", lat: 35.7969, lng: 139.4710, r: 30 },
+  { id: "qr4", name: "treasure4", lat: 35.7978, lng: 139.4720, r: 30 },
+  { id: "qr5", name: "treasure5", lat: 35.7990, lng: 139.4713, r: 30 },
+  { id: "qr6", name: "treasure6", lat: 35.7986, lng: 139.4696, r: 30 },
 ];
 
 function normalizeToTreasures(arr) {
   return arr.map((p, i) => ({
-    id: p.id || `qr${i+1}`,
-    name: `treasure${i+1}`,
+    id: p.id || `qr${i + 1}`,
+    name: `treasure${i + 1}`,
     lat: p.lat ?? p.latitude ?? 35.797 + 0.001 * i,
     lng: p.lng ?? p.longitude ?? 139.469 + 0.001 * i,
     r: p.r ?? p.radius ?? 70
-  })).slice(0,6);
+  })).slice(0, 6);
 }
 
 "use strict";
@@ -48,7 +48,7 @@ const cfg = (() => {
     qrPoints: parseJSONSafe(d.qrPoints, []),  // [{id,name,lat,lng}]
     fallbackCenter: { lat: 35.7863, lng: 139.4722 }, // 所沢駅近辺
     fallbackZoom: getNumber(d.initialZoom, 16),
-    circleRadius: 50 // meters
+    circleRadius: 30 // meters
   };
 })();
 
@@ -254,10 +254,11 @@ function addCustomLabels() {
 
   // ★ ラベル定義は関数内ローカルに（TDZ回避 & google未定義回避）
   const LABELS = [
-    { text: "グランエミオ所沢", lat: 35.78697, lng: 139.47433, offset: { x: 0, y: -40 } },
-    { text: "エミテラス所沢", lat: 35.78512, lng: 139.47035, offset: { x: 30, y: 50 } },
-    { text: "シティタワー所沢クラッシィ", lat: 35.78673, lng: 139.47145, offset: { x: -20, y: -20} },
-    { text: "西武SC", lat: 35.785675, lng: 139.472470, offset: { x: 0, y: 0 } }
+    { text: "101号館", lat: 35.788937, lng: 139.399460, offset: { x: 0, y: 0 } },
+    {text: "スポーツホール", lat: 35.787986, lng: 139.398860, offset: {x: 0, y: 0}},
+    { text: "100号館", lat: 35.785246, lng: 139.398903, offset: { x: 0, y: 0 } },
+    { text: "野球場", lat: 35.787352, lng: 139.400279, offset: { x: 0, y: 0 } },
+    { text: "陸上競技場", lat: 35.785722, lng: 139.400640, offset: { x: 0, y: 0 } }
   ];
 
   LABELS.forEach(({ text, lat, lng, offset }) => {
@@ -579,7 +580,7 @@ function ensureFinishButton() {
 }
 
 async function updateFinishVisibility() {
-  try { ensureFinishButton(); } catch(e) {}
+  try { ensureFinishButton(); } catch (e) { }
   let REQUIRED = 4, TOTAL = 6;
   try {
     const auth = getAuth();
@@ -605,7 +606,7 @@ async function updateFinishVisibility() {
       if (!btn) return;
       btn.style.display = (count >= REQUIRED) ? "block" : "none";
     }
-  } catch(e) {}
+  } catch (e) { }
 }
 
 document.addEventListener("DOMContentLoaded", () => {

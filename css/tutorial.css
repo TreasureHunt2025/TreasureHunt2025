@@ -25,9 +25,9 @@
   padding-right: max(var(--pad), env(safe-area-inset-right));
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  word-break: keep-all;
-  overflow-wrap: anywhere;
-  line-break: strict;
+  word-break: normal;
+  overflow-wrap: break-word;
+  line-break: auto;
   text-wrap: pretty;
 }
 
@@ -105,6 +105,7 @@
 .tutorial ul>li {
   display: grid;
   grid-template-columns: auto 1fr;
+  align-items: start;
   gap: .6em;
 }
 
@@ -114,6 +115,7 @@
   font-size: 1.2em;
   line-height: 1;
   translate: 0 .08em;
+  transform: translateY(.08em);
 }
 
 .tutorial .muted {
@@ -172,4 +174,103 @@
 }
 
 .tutorial ol>li,
-.tutorial ul>li { display: grid; }
+.tutorial ul>li {
+  display: grid;
+}
+
+.tutorial {
+  text-align: left;
+}
+
+.tutorial ol>li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: .85em;
+}
+
+.tutorial ol>li::before {
+  grid-column: 1;
+  grid-row: 1 / -1;
+}
+
+.tutorial ol>li * {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.tutorial ul>li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: .6em;
+}
+
+.tutorial ul>li::before {
+  grid-column: 1;
+}
+
+.tutorial ul>li * {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.tutorial {
+  word-break: normal;
+  overflow-wrap: break-word;
+  line-break: auto;
+}
+
+.tutorial,
+.tutorial * {
+  text-align: left !important;
+}
+
+.tutorial ol>li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: .85em;
+}
+
+.tutorial ol>li::before {
+  grid-column: 1;
+  grid-row: 1 / -1;
+}
+
+.tutorial ol>li * {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.tutorial ul>li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: .6em;
+}
+
+.tutorial ul>li::before {
+  grid-column: 1;
+}
+
+.tutorial ul>li * {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.tutorial {
+  word-break: normal;
+  overflow-wrap: break-word;
+  line-break: auto;
+}
+
+.tutorial ol>li p {
+  margin: 0;
+}
+
+.tutorial ol>li p+p {
+  margin-top: .25em;
+}
+
+.tutorial .step-note { text-align: center !important; }

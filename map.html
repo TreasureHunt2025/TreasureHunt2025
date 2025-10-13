@@ -12,6 +12,7 @@
 </head>
 
 <body class="map-page">
+
   <header class="header">
     <div class="container flex-between">
       <div class="brand">
@@ -20,16 +21,20 @@
       </div>
     </div>
   </header>
+
   <main role="main">
     <div id="map" class="map-canvas" aria-label="所沢周辺の宝探しマップ"></div>
     <aside id="panel" class="panel" aria-hidden="true">
+
       <div class="panel-header">
         <strong>ヒント一覧</strong>
         <div style="display:flex; gap:.4rem; margin-left:auto;">
           <button class="panel-close" type="button" aria-label="ヒントを閉じる">×</button>
         </div>
       </div>
+
       <div id="hint-list" class="panel-body"></div>
+
     </aside>
 
     <button id="toggle-panel" class="fab" aria-expanded="false" aria-label="ヒントを開く">💡</button>
@@ -63,14 +68,27 @@
   </footer>
 
   <template id="map-config" data-geojson="./tokorozawa.geojson" data-initial-zoom="16"
-    data-qr-points='[{"id": "qr1", "name": "treasure1", "lat": 35.7877068014553, "lng": 139.3993037267694}, {"id": "qr2", "name": "treasure2", "lat": 35.785353966985085, "lng": 139.39878154731983}, {"id": "qr3", "name": "treasure3", "lat": 35.78864444263647, "lng": 139.39948253818648}, {"id": "qr4", "name": "treasure4", "lat": 35.78769165849726, "lng": 139.39861191131166}, {"id": "qr5", "name": "treasure5", "lat": 35.7895, "lng": 139.4003}, {"id": "qr6", "name": "treasure6", "lat": 35.7869, "lng": 139.4009}]'
-    data-qr-hints='[{"id": "qr1", "hint": "treasure1 を探そう"}, {"id": "qr2", "hint": "treasure2 を探そう"}, {"id": "qr3", "hint": "treasure3 を探そう"}, {"id": "qr4", "hint": "treasure4 を探そう"}]'>
+    data-qr-points='[
+      {"id": "qr1", "name": "101号館", "lat": 35.788699, "lng": 139.399466}, 
+      {"id": "qr2", "name": "1年生企画", "lat": 35.786451, "lng": 139.399485},
+      {"id": "qr3", "name": "脱出ゲーム", "lat": 35.785700, "lng": 139.399571},
+      {"id": "qr4", "name": "RPG", "lat": 35.784718, "lng": 139.399185},
+      {"id": "qr5", "name": "レモンスカッシュ", "lat": 35.787840, "lng": 139.399492},
+      {"id": "qr6", "name": "ステージ", "lat": 35.786633, "lng": 139.399795}]'
+    data-qr-hints='[
+    {"id": "qr1", "hint": "お笑いライブがあるらしい！"},
+    {"id": "qr2", "hint": "treasure2 を探そう"},
+    {"id": "qr3", "hint": "treasure3 を探そう"},
+    {"id": "qr4", "hint": "treasure4 を探そう"}]'>
   </template>
+
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" defer></script>
   <script src="./js/map.js"></script>
   <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBy_Oh_oRHjntjRW-g48N-oEovSsqClREc&callback=initMap&v=weekly&loading=async"
-    defer></script>
+    defer>
+    </script>
+
 </body>
 
 </html>

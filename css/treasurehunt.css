@@ -1213,15 +1213,49 @@ body.scanner-open .footer {
   }
 }
 
-html, body {
+html,
+body {
   min-height: 100%;
 }
 
 .card {
-  background: rgba(255,255,255,.85) !important;
+  background: rgba(255, 255, 255, .85) !important;
   backdrop-filter: blur(2px);
 }
 
 .section {
   background: transparent;
+}
+
+.tutorial ol>li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: .85em;
+}
+
+.tutorial ol>li::before {
+  grid-column: 1;
+  grid-row: 1 / -1;
+}
+
+.tutorial ol>li>* {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.tutorial ul>li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: .6em;
+}
+
+.tutorial ul>li::before {
+  grid-column: 1;
+}
+
+.tutorial ul>li>* {
+  grid-column: 2;
+  min-width: 0;
 }

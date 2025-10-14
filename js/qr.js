@@ -45,8 +45,8 @@ let uid;
   uid = await requireUidOrRedirect();
 
   const params = new URLSearchParams(location.search);
-  const key = params.get("key");     // 例: qr3
-  const token = params.get("token"); // 例: TH-QR3
+  const key = params.get("key");
+  const token = params.get("token");
 
   const pointId = normalizeToPointId({ key, token });
   if (!pointId) {

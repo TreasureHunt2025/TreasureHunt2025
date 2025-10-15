@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>宝探し企画景品くじ引き</title>
+  <title>宝探し企画くじ引き</title>
   <style>
     :root {
       --bg1: #214b86;
@@ -20,6 +20,7 @@
       --c5: #64748b;
       --accent: #61b0ff;
       --accentGlow: rgba(97, 176, 255, .35);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     * {
@@ -54,11 +55,6 @@
       box-shadow: none;
     }
 
-    .confirm:focus,
-    .confirm:focus-visible {
-      outline: none !important;
-    }
-
     .wrap {
       max-width: 1100px;
       margin: 0 auto;
@@ -67,7 +63,7 @@
 
     header {
       display: flex;
-      gap: 12px;
+      gap: 8px;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 12px
@@ -75,15 +71,15 @@
 
     h1 {
       margin: 0;
-      font-size: clamp(22px, 2.6vw, 32px);
+      font-size: clamp(20px, 2.2vw, 28px);
       letter-spacing: .02em;
       text-shadow: 0 2px 10px rgba(0, 0, 0, .25)
     }
 
-    .mute {
+    .btn {
       border: 1px solid var(--edge);
       background: #1b4275;
-      color: var(--txt);
+      color: #f2f7fc;
       border-radius: 999px;
       padding: 8px 12px;
       cursor: pointer;
@@ -187,8 +183,7 @@
     }
 
     .roller {
-      width: min(100%, 900px);
-      aspect-ratio: 5/2;
+      width: min(100%, 1100px);
       display: grid;
       place-items: center;
       border-radius: 22px;
@@ -197,6 +192,8 @@
       box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .05), 0 24px 70px rgba(0, 0, 0, .35);
       position: relative;
       overflow: hidden;
+      height: var(--roller-h, auto);
+      aspect-ratio: 5/2;
     }
 
     .roller::after {
@@ -208,7 +205,6 @@
     }
 
     .digit {
-      font-size: min(22vw, 240px);
       font-weight: 1000;
       letter-spacing: .02em;
       text-shadow: 0 6px 16px rgba(0, 0, 0, .35);
@@ -217,6 +213,7 @@
       transition: transform .05s;
       -webkit-user-select: none;
       user-select: none;
+      font-size: var(--digit-fs, min(22vw, 240px));
     }
 
     .digit.flash {
@@ -385,7 +382,7 @@
       animation: shake .24s linear
     }
 
-    /* ===== Landscape: bigger roller + sticky confirm within viewport ===== */
+    /* ===== Landscape: perfect-fit with taller roller ===== */
     @media (orientation: landscape) {
       .wrap {
         max-width: none;
@@ -448,12 +445,12 @@
 
       .roller {
         width: 100%;
-        max-height: 62svh;
         aspect-ratio: auto;
       }
 
+      /* override to allow tall box */
       .digit {
-        font-size: min(22vh, 22vw, 240px);
+        font-size: var(--digit-fs, min(26vh, 26vw, 300px));
       }
 
       .start button {
@@ -478,8 +475,8 @@
 
       .actions {
         position: sticky;
-        bottom: calc(env(safe-area-inset-bottom) + 8px);
-        padding-bottom: env(safe-area-inset-bottom);
+        bottom: calc(var(--safe-bottom) + 8px);
+        padding-bottom: var(--safe-bottom);
         width: min(96vw, 1200px);
         margin: 0 auto;
         margin-top: auto;
@@ -499,14 +496,14 @@
 
 <body>
   <div class="wrap">
-    <header>
-      <h1>宝探し企画景品くじ引き</h1>
-      <button id="mute" class="mute" aria-pressed="false">🔊 サウンド</button>
+    <header id="appHeader">
+      <h1>宝探し企画くじ引き</h1>
+      <button id="mute" class="btn" aria-pressed="false">🔊 サウンド</button>
     </header>
 
     <main class="main">
-      <section class="panel left playArea">
-        <div class="bigBtns">
+      <section class="panel left playArea" id="play">
+        <div class="bigBtns" id="bigBtns">
           <button id="pick1">1回引く</button>
           <button id="pick2">2回引く</button>
           <button id="pick3">3回引く</button>
@@ -516,7 +513,7 @@
           <div class="roller" id="roller">
             <div class="digit" id="digit">–</div>
           </div>
-          <div class="start">
+          <div class="start" id="startWrap">
             <button id="startBtn" disabled>スタート</button>
           </div>
         </div>
@@ -542,45 +539,89 @@
   </div>
 
   <script>
-    // === logic (existing) ===
-    const KEY = 'lottery_num_state_fixed_v8';
+    // === logic ===
+    const KEY = 'lottery_num_state_v11';
     const DEFAULT_INV = { 1: 5, 2: 18, 3: 35, 4: 82, 5: 160 };
     let inv = loadInv();
     let plannedDraws = 0, doneDraws = 0, pendingResults = [], selectedTier = null;
     let running = false, muted = false, controlsLocked = false;
 
-    // Audio (keep louder settings)
+    // Audio
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     let actx = null, master = null;
     function ensureAudio() {
       if (!actx) {
-        actx = new AudioCtx();
+        actx = new AudioCtx({ latencyHint: 'interactive' });
         master = actx.createGain();
         master.gain.value = 0.9;
         master.connect(actx.destination);
       }
     }
-    function tone(freq = 340, time = 0.08, type = 'sine', gain = 0.12) {
-      if (muted) return; ensureAudio();
-      const o = actx.createOscillator(), g = actx.createGain();
-      o.type = type; o.frequency.value = freq; g.gain.value = gain;
-      o.connect(g).connect(master); o.start(); o.stop(actx.currentTime + time);
+    async function unlockAudio() {
+      try { ensureAudio(); if (actx && actx.state !== 'running') await actx.resume(); } catch (e) { }
     }
-    function tick() { tone(360, 0.06, 'sine', 0.10); }
-    function thump() { tone(160, 0.20, 'sine', 0.18); }
+    function tone(freq = 520, time = 0.10, type = 'sine', gain = 0.16) {
+      if (muted) return;
+      ensureAudio();
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = type; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, actx.currentTime);
+      g.gain.linearRampToValueAtTime(gain, actx.currentTime + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + time);
+      o.connect(g).connect(master);
+      o.start(); o.stop(actx.currentTime + time);
+    }
+    function tick() { tone(620, 0.08, 'sine', 0.18); }
+    function thump() { tone(220, 0.18, 'sine', 0.18); }
     function chime() {
       if (muted) return; ensureAudio();
       const t = actx.currentTime;
-      [[392, 0], [494, 0.1], [587, 0.2]].forEach(([f, off]) => {
+      [[523, 0], [659, 0.1], [784, 0.22]].forEach(([f, off]) => {
         const o = actx.createOscillator(), g = actx.createGain();
         o.type = 'sine'; o.frequency.value = f;
         g.gain.setValueAtTime(0.0001, t + off);
         g.gain.linearRampToValueAtTime(0.06, t + off + 0.03);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + off + 0.45);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + off + 0.5);
         o.connect(g).connect(master);
-        o.start(t + off); o.stop(t + off + 0.5);
+        o.start(t + off); o.stop(t + off + 0.52);
       });
     }
+
+    // Dynamic perfect-fit for landscape
+    function fitLayout() {
+      const header = document.getElementById('appHeader');
+      const play = document.getElementById('play');
+      const big = document.getElementById('bigBtns');
+      const startWrap = document.getElementById('startWrap');
+      const roller = document.getElementById('roller');
+      const digit = document.getElementById('digit');
+      const actions = document.getElementById('actions');
+      const banner = document.getElementById('selectedBanner');
+      const results = document.getElementById('results');
+
+      const vpH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      const padTop = parseFloat(getComputedStyle(play).paddingTop) || 0;
+      const padBot = parseFloat(getComputedStyle(play).paddingBottom) || 0;
+      const headerH = header.offsetHeight || 0;
+      const bigH = big.offsetHeight || 0;
+      const startH = startWrap.offsetHeight || 0;
+      const bannerH = (banner.style.display !== 'none' ? banner.offsetHeight : 0);
+      const resultsH = results.offsetHeight || 0;
+      const actionsH = (actions.style.display !== 'none' ? actions.offsetHeight : 72) + 16; // reserve when hidden
+
+      // Make roller as tall as possible but keep confirm visible
+      const avail = vpH - headerH - padTop - padBot - bigH - startH - bannerH - resultsH - actionsH - 10;
+      const rollerH = Math.max(200, Math.min(avail, Math.floor(vpH * 0.80))); // taller cap (80% of viewport)
+      roller.style.setProperty('--roller-h', rollerH + 'px');
+
+      // Digit font-size proportional to roller height
+      const fs = Math.max(140, Math.min(Math.floor(rollerH * 0.56), 320));
+      digit.style.setProperty('--digit-fs', fs + 'px');
+    }
+    const fitLater = () => requestAnimationFrame(fitLayout);
+    window.addEventListener('load', fitLater);
+    window.addEventListener('resize', fitLater);
+    window.addEventListener('orientationchange', () => setTimeout(fitLayout, 200));
 
     function loadInv() { try { const raw = localStorage.getItem(KEY); if (!raw) return { ...DEFAULT_INV }; const obj = JSON.parse(raw); return { ...DEFAULT_INV, ...obj }; } catch (e) { return { ...DEFAULT_INV }; } }
     function saveInv() { localStorage.setItem(KEY, JSON.stringify(inv)); }
@@ -618,51 +659,6 @@
     function el(tag, cls, html) { const x = document.createElement(tag); if (cls) x.className = cls; if (html != null) x.innerHTML = html; return x; }
     function btn(txt, fn) { const b = document.createElement('button'); b.textContent = txt; b.onclick = fn; return b; }
 
-    const digitEl = document.getElementById('digit');
-    const roller = document.getElementById('roller');
-    function animateToResult(result) {
-      return new Promise(resolve => {
-        const t0 = performance.now();
-        const dur = 4000;
-        const accel = 0.28, decel = 0.48;
-        const nums = [1, 2, 3, 4, 5];
-        let lastSwitch = t0;
-        function easeIn(x) { return x * x; }
-        function easeOutQuint(x) { return 1 - Math.pow(1 - x, 5); }
-        function frame(now) {
-          const p = Math.min(1, (now - t0) / dur);
-          let spd;
-          if (p < accel) { spd = 1.0 + 3.0 * easeIn(p / accel); }
-          else if (p > 1 - decel) { spd = 0.6 + 0.9 * (1 - easeOutQuint((1 - p) / decel)); }
-          else { spd = 3.8; }
-          const gap = 1000 / (9 * spd);
-          if (now - lastSwitch > gap) {
-            const n = nums[Math.floor(Math.random() * nums.length)];
-            digitEl.textContent = n;
-            digitEl.style.color = '#0b0f14';
-            roller.style.background = `linear-gradient(180deg, ${shade(colorFor(n), 0.2)}, ${shade(colorFor(n), -0.22)})`;
-            lastSwitch = now;
-            tick();
-          }
-          if (p < 1) requestAnimationFrame(frame);
-          else {
-            digitEl.textContent = result;
-            digitEl.classList.remove('flash'); void digitEl.offsetWidth; digitEl.classList.add('flash');
-            roller.style.background = `linear-gradient(180deg, ${shade(colorFor(result), 0.12)}, ${shade(colorFor(result), -0.25)})`;
-            thump(); setTimeout(chime, 80);
-            resolve();
-          }
-        }
-        requestAnimationFrame(frame);
-      });
-    }
-    function shade(hex, amt) {
-      const c = hex.replace('#', ''); const n = parseInt(c, 16);
-      let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
-      const f = (x) => Math.max(0, Math.min(255, Math.floor(amt >= 0 ? x + (255 - x) * amt : x * (1 + amt))));
-      return '#' + ((1 << 24) + (f(r) << 16) + (f(g) << 8) + f(b)).toString(16).slice(1);
-    }
-
     const resultsEl = document.getElementById('results');
     const startBtn = document.getElementById('startBtn');
     const confirmBtn = document.getElementById('confirmBtn');
@@ -684,7 +680,8 @@
     function setControlsLocked(lock) {
       controlsLocked = lock;
       [btn1, btn2, btn3].forEach(b => { b.disabled = lock; });
-      startBtn.disabled = lock || (Math.max(0, plannedDraws - doneDraws) <= 0);
+      const remain = Math.max(0, plannedDraws - doneDraws);
+      startBtn.disabled = lock || (remain <= 0);
     }
     function setDraws(n) {
       if (controlsLocked) { nudge([btn1, btn2, btn3]); return; }
@@ -695,9 +692,10 @@
       resultsEl.innerHTML = '';
       actions.style.display = 'none';
       confirmBtn.disabled = true;
-      digitEl.textContent = '–';
-      roller.style.background = 'radial-gradient(120% 160% at 20% 10%, #21416f, #18325a)';
+      digit.textContent = '–';
+      document.getElementById('roller').style.background = 'radial-gradient(120% 160% at 20% 10%, #21416f, #18325a)';
       selectCountButton(n);
+      fitLayout();
     }
     function updateStartLabel() {
       const remain = Math.max(0, plannedDraws - doneDraws);
@@ -705,6 +703,7 @@
       startBtn.disabled = controlsLocked || remain <= 0;
     }
     async function runOneDraw() {
+      try { await unlockAudio(); } catch (_) { }
       if (running) return;
       if (doneDraws >= plannedDraws) return;
       running = true; startBtn.disabled = true;
@@ -715,7 +714,7 @@
       addChip(pick);
       const remain = plannedDraws - doneDraws;
       if (remain > 0) {
-        [btn1, btn2, btn3].forEach(b => b.disabled = true);
+        [btn1, btn2, btn3].forEach(b => b.disabled = true); // lock preset while in multi-draw
         updateStartLabel();
         actions.style.display = 'none';
         confirmBtn.disabled = true;
@@ -724,19 +723,19 @@
         updateStartLabel();
         actions.style.display = 'flex';
         hint.textContent = '表示された結果から1つ選んでください';
-        if (plannedDraws === 1) {
-          selectChip(resultsEl.lastElementChild);
-        }
-        setControlsLocked(true);
+        // 自動で最後の結果を選択しない（ユーザーが選ぶ想定）
+        setControlsLocked(true); // now fully lock until confirm
       }
       running = false;
+      fitLayout();
     }
     function addChip(tier) {
       const chip = document.createElement('span');
       chip.className = 'chip'; chip.style.background = colorFor(tier);
       chip.textContent = `${tier}等`;
-      chip.onclick = () => selectChip(chip);
+      chip.onclick = () => { selectChip(chip); };
       resultsEl.appendChild(chip);
+      fitLayout();
     }
     function selectChip(chipEl) {
       document.querySelectorAll('.chip').forEach(c => c.classList.remove('sel'));
@@ -744,13 +743,29 @@
       const tier = Number(chipEl.textContent[0]);
       selectedTier = tier;
       const left = inv[tier] | 0;
-      confirmBtn.disabled = left <= 0;
-      hint.textContent = left > 0 ? `${tier}等 を授与（残り ${left}）` : `${tier}等 は在庫切れ。他を選んでください`;
+
+      const remain = Math.max(0, plannedDraws - doneDraws);
       selectedBadge.style.background = colorFor(tier);
       selectedBadge.textContent = `${tier}等`;
-      selectedLabel.textContent = plannedDraws === 1 ? '今回の結果：' : '確定候補：';
       selectedBanner.style.display = 'flex';
-      setControlsLocked(true);
+
+      if (remain > 0) {
+        // まだ抽選が残っている → バナーだけ更新して続行可能
+        selectedLabel.textContent = '確定候補（まだ抽選中）';
+        hint.textContent = `続けてスタートを押してください（残り ${remain}）`;
+        actions.style.display = 'none';
+        confirmBtn.disabled = true;
+        // ここではコントロールはロックしない（Startは押せる）
+        updateStartLabel();
+      } else {
+        // 全て出揃った → 確定できる
+        selectedLabel.textContent = '確定候補：';
+        hint.textContent = left > 0 ? `${tier}等 を授与（残り ${left}）` : `${tier}等 は在庫切れ。他を選んでください`;
+        actions.style.display = 'flex';
+        confirmBtn.disabled = left <= 0;
+        setControlsLocked(true);
+      }
+      fitLayout();
     }
     function confirmAward() {
       if (selectedTier == null) { alert('授与する等級を選んでください'); return; }
@@ -763,18 +778,19 @@
       selectedBanner.style.display = 'none';
       hint.textContent = '確定しました';
       setControlsLocked(false);
+      fitLayout();
     }
     function nudge(els) { (Array.isArray(els) ? els : [els]).forEach(e => { e.classList.remove('shake'); void e.offsetWidth; e.classList.add('shake'); }); }
 
     document.getElementById('pick1').onclick = () => setDraws(1);
     document.getElementById('pick2').onclick = () => setDraws(2);
     document.getElementById('pick3').onclick = () => setDraws(3);
-    startBtn.onclick = runOneDraw;
-    confirmBtn.onclick = confirmAward;
-    document.getElementById('mute').onclick = (e) => {
+    document.getElementById('startBtn').onclick = runOneDraw;
+    document.getElementById('confirmBtn').onclick = confirmAward;
+    document.getElementById('mute').onclick = async (e) => {
       muted = !muted; e.currentTarget.setAttribute('aria-pressed', String(muted));
       e.currentTarget.textContent = muted ? '🔇 ミュート' : '🔊 サウンド';
-      if (!muted) { try { ensureAudio(); tone(300, 0.06, 'sine', 0.12); } catch (_) { } }
+      if (!muted) { try { await unlockAudio(); tone(600, 0.08, 'sine', 0.18); } catch (_) { } }
     };
 
     renderInv();

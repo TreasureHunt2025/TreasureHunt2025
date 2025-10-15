@@ -677,11 +677,11 @@
       // 4) ローラーに割り当て可能な高さ（余白少し確保）
       const extraGap = 10;
       const avail = vpH - headerH - padTop - padBot - bigH - startH - bannerH - resultsH - extraGap;
-      const rollerH = Math.max(200, Math.min(avail, Math.floor(vpH * 0.70))); // 70%上限で確実に収める
+      const rollerH = Math.max(200, Math.min(avail, Math.floor(vpH * 0.68)));
       roller.style.setProperty('--roller-h', rollerH + 'px');
 
       // 5) 数字のフォントサイズ（ローラー比率）
-      const fs = Math.max(120, Math.min(Math.floor(rollerH * 0.56), 300));
+      const fs = Math.max(120, Math.min(Math.floor(rollerH * 0.50), 300));
       digit.style.setProperty('--digit-fs', fs + 'px');
     }
     const fitLater = () => requestAnimationFrame(fitLayout);

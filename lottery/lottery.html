@@ -36,9 +36,29 @@
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
       background: radial-gradient(1200px 800px at 70% -10%, var(--bg1) 0%, var(--bg2) 70%);
       color: var(--txt);
+      -webkit-text-size-adjust: 100%;
     }
 
-    /* ===== Base layout (portrait / default) ===== */
+    /* remove iOS blue highlight/focus */
+    button,
+    input {
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      outline: none;
+    }
+
+    button:focus,
+    button:focus-visible,
+    input:focus,
+    input:focus-visible {
+      outline: none !important;
+      box-shadow: none;
+    }
+
+    .confirm:focus,
+    .confirm:focus-visible {
+      outline: none !important;
+    }
+
     .wrap {
       max-width: 1100px;
       margin: 0 auto;
@@ -167,7 +187,7 @@
     }
 
     .roller {
-      width: min(100%, 640px);
+      width: min(100%, 900px);
       aspect-ratio: 5/2;
       display: grid;
       place-items: center;
@@ -188,7 +208,7 @@
     }
 
     .digit {
-      font-size: min(22vw, 210px);
+      font-size: min(22vw, 240px);
       font-weight: 1000;
       letter-spacing: .02em;
       text-shadow: 0 6px 16px rgba(0, 0, 0, .35);
@@ -244,7 +264,8 @@
       display: flex;
       gap: 12px;
       justify-content: center;
-      align-items: center
+      align-items: center;
+      z-index: 30
     }
 
     .actions .confirm {
@@ -327,7 +348,8 @@
       padding: 12px 16px;
       border-radius: 14px;
       border: 2px dashed rgba(255, 255, 255, .2);
-      background: rgba(0, 0, 0, .15)
+      background: rgba(0, 0, 0, .15);
+      z-index: 10
     }
 
     .selectedBadge {
@@ -363,7 +385,7 @@
       animation: shake .24s linear
     }
 
-    /* ===== Landscape full-screen: fit confirm within viewport, keep Start button under roller ===== */
+    /* ===== Landscape: bigger roller + sticky confirm within viewport ===== */
     @media (orientation: landscape) {
       .wrap {
         max-width: none;
@@ -374,10 +396,14 @@
         position: sticky;
         top: 0;
         z-index: 20;
-        padding: 10px 16px;
+        padding: 6px 12px;
         margin: 0;
-        background: linear-gradient(180deg, rgba(0, 0, 0, .24), rgba(0, 0, 0, 0));
-        backdrop-filter: blur(4px);
+        background: linear-gradient(180deg, rgba(0, 0, 0, .18), rgba(0, 0, 0, 0));
+        backdrop-filter: blur(3px);
+      }
+
+      h1 {
+        font-size: clamp(16px, 1.8vw, 22px)
       }
 
       .main {
@@ -386,11 +412,10 @@
 
       .playArea {
         min-height: 100svh;
-        /* full safe viewport */
-        padding: clamp(10px, 2.6vh, 22px);
+        padding: clamp(8px, 2vh, 16px);
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
       }
 
       .left {
@@ -405,40 +430,63 @@
       }
 
       .bigBtns {
-        width: min(92vw, 1100px);
-        margin: 0 auto 6px
+        width: min(96vw, 1200px);
+        margin: 0 auto 4px
+      }
+
+      .bigBtns button {
+        font-size: clamp(18px, 2.2vw, 26px);
+        padding: 16px 10px;
+        border-radius: 16px
       }
 
       .rollerWrap {
-        width: min(92vw, 1100px);
+        width: min(96vw, 1200px);
         margin: 0 auto;
-        gap: 8px
+        gap: 6px
       }
 
       .roller {
         width: 100%;
-        max-height: 52svh;
+        max-height: 62svh;
         aspect-ratio: auto;
       }
 
       .digit {
-        font-size: min(18vh, 18vw, 180px);
+        font-size: min(22vh, 22vw, 240px);
+      }
+
+      .start button {
+        font-size: clamp(18px, 2.4vw, 26px);
+        padding: 12px 24px
+      }
+
+      .selectedBanner {
+        width: min(96vw, 1200px);
+        margin: 0 auto
       }
 
       .results {
-        width: min(92vw, 1100px);
+        width: min(96vw, 1200px);
         margin: 0 auto;
         gap: 8px
       }
 
-      .actions {
-        width: min(92vw, 1100px);
-        margin: 0 auto;
-        margin-top: auto
+      .chip {
+        padding: 10px 12px
       }
 
-      /* stay inside viewport bottom */
-      /* Inventory BELOW requires scroll */
+      .actions {
+        position: sticky;
+        bottom: calc(env(safe-area-inset-bottom) + 8px);
+        padding-bottom: env(safe-area-inset-bottom);
+        width: min(96vw, 1200px);
+        margin: 0 auto;
+        margin-top: auto;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, .18));
+        border-radius: 14px;
+      }
+
       .inventoryPanel {
         margin-top: 0;
         padding: 16px;
@@ -494,21 +542,21 @@
   </div>
 
   <script>
-    // === logic (based on your original), add louder audio ===
-    const KEY = 'lottery_num_state_fixed';
+    // === logic (existing) ===
+    const KEY = 'lottery_num_state_fixed_v8';
     const DEFAULT_INV = { 1: 5, 2: 18, 3: 35, 4: 82, 5: 160 };
     let inv = loadInv();
     let plannedDraws = 0, doneDraws = 0, pendingResults = [], selectedTier = null;
     let running = false, muted = false, controlsLocked = false;
 
-    // Louder audio with master gain (keeps headroom)
+    // Audio (keep louder settings)
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     let actx = null, master = null;
     function ensureAudio() {
       if (!actx) {
         actx = new AudioCtx();
         master = actx.createGain();
-        master.gain.value = 0.9; // cap overall volume
+        master.gain.value = 0.9;
         master.connect(actx.destination);
       }
     }
@@ -637,7 +685,6 @@
       controlsLocked = lock;
       [btn1, btn2, btn3].forEach(b => { b.disabled = lock; });
       startBtn.disabled = lock || (Math.max(0, plannedDraws - doneDraws) <= 0);
-      // confirmBtn stays controlled by selection
     }
     function setDraws(n) {
       if (controlsLocked) { nudge([btn1, btn2, btn3]); return; }

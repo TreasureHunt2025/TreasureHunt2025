@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>宝探し企画景品くじ引き</title>
   <style>
     :root {
@@ -38,6 +38,7 @@
       color: var(--txt);
     }
 
+    /* ===== Base layout (portrait / default) ===== */
     .wrap {
       max-width: 1100px;
       margin: 0 auto;
@@ -361,6 +362,70 @@
     .shake {
       animation: shake .24s linear
     }
+
+    /* ===== Landscape full-screen play area ===== */
+    @media (orientation: landscape) {
+      .wrap {
+        max-width: none;
+        padding: 0;
+      }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        padding: 10px 16px;
+        margin: 0;
+        background: linear-gradient(180deg, rgba(0, 0, 0, .24), rgba(0, 0, 0, 0));
+        backdrop-filter: blur(4px);
+      }
+
+      .main {
+        display: block
+      }
+
+      .playArea {
+        min-height: 100svh;
+        /* iPad Safari safe viewport height */
+        padding: clamp(10px, 3vh, 24px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .left {
+        padding: 0;
+        background: transparent;
+        box-shadow: none;
+        border: 0
+      }
+
+      .panel.left {
+        background: transparent
+      }
+
+      .roller {
+        width: min(92vw, 1100px);
+        aspect-ratio: 5/2;
+      }
+
+      .bigBtns {
+        width: min(92vw, 1100px);
+        margin: 0 auto 8px
+      }
+
+      .start {
+        margin-top: 8px
+      }
+
+      /* Inventory BELOW requires scroll */
+      .inventoryPanel {
+        margin-top: 0;
+        padding: 16px;
+        border-top-left-radius: 18px;
+        border-top-right-radius: 18px;
+      }
+    }
   </style>
 </head>
 
@@ -371,8 +436,9 @@
       <button id="mute" class="mute" aria-pressed="false">🔊 サウンド</button>
     </header>
 
-    <div class="main">
-      <section class="panel left">
+    <main class="main">
+      <!-- Full-screen play area in landscape -->
+      <section class="panel left playArea">
         <div class="bigBtns">
           <button id="pick1">1回引く</button>
           <button id="pick2">2回引く</button>
@@ -400,16 +466,18 @@
         </div>
       </section>
 
-      <aside class="panel right">
+      <!-- Inventory section lives BELOW and requires scroll in landscape -->
+      <section class="panel right inventoryPanel">
         <h3 style="margin:0 0 6px">在庫状況</h3>
         <div class="invGrid" id="inv"></div>
         <p class="muted" style="margin:.5em 0 0">※数値を直接編集するか±で調整できます。</p>
-      </aside>
-    </div>
+      </section>
+    </main>
   </div>
 
   <script>
-    const KEY = 'lottery_num_state_v5';
+    // === same logic as v5, with new storage key ===
+    const KEY = 'lottery_num_state_v6';
     const DEFAULT_INV = { 1: 5, 2: 18, 3: 35, 4: 82, 5: 160 };
     let inv = loadInv();
     let plannedDraws = 0, doneDraws = 0, pendingResults = [], selectedTier = null;

@@ -40,7 +40,6 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    /* remove iOS blue highlight/focus */
     button,
     input {
       -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
@@ -194,6 +193,8 @@
       overflow: hidden;
       height: var(--roller-h, auto);
       aspect-ratio: 5/2;
+      margin-bottom: 8px;
+      /* small visual breathing space */
     }
 
     .roller::after {
@@ -382,7 +383,7 @@
       animation: shake .24s linear
     }
 
-    /* ===== Landscape: perfect-fit with taller roller ===== */
+    /* ===== Landscape tweaks ===== */
     @media (orientation: landscape) {
       .wrap {
         max-width: none;
@@ -448,7 +449,6 @@
         aspect-ratio: auto;
       }
 
-      /* override to allow tall box */
       .digit {
         font-size: var(--digit-fs, min(26vh, 26vw, 300px));
       }
@@ -478,10 +478,11 @@
         bottom: calc(var(--safe-bottom) + 8px);
         padding-bottom: var(--safe-bottom);
         width: min(96vw, 1200px);
-        margin: 0 auto;
+        margin: 8px auto 0;
         margin-top: auto;
-        background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, .18));
-        border-radius: 14px;
+        background: transparent;
+        /* no footer-like bg */
+        border-radius: 0;
       }
 
       .inventoryPanel {
@@ -490,20 +491,6 @@
         border-top-left-radius: 18px;
         border-top-right-radius: 18px;
       }
-    }
-
-    /* Error banner */
-    #errBanner {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 9999;
-      display: none;
-      padding: 10px 14px;
-      background: #b91c1c;
-      color: #fff;
-      font-weight: 700;
     }
   </style>
 </head>
@@ -552,30 +539,14 @@
     </main>
   </div>
 
-  <div id="errBanner"></div>
-
   <script>
-    // ===== Error surface (helps on device) =====
-    (function () {
-      const banner = document.getElementById('errBanner');
-      window.addEventListener('error', e => {
-        banner.textContent = 'エラー: ' + (e && e.message ? e.message : '不明なエラー');
-        banner.style.display = 'block';
-      });
-      window.addEventListener('unhandledrejection', e => {
-        banner.textContent = 'エラー: ' + (e && e.reason && e.reason.message ? e.reason.message : 'Promise でエラー');
-        banner.style.display = 'block';
-      });
-    })();
-
-    // === logic ===
-    const KEY = 'lottery_num_state_v13';
+    // === logic (same as v13, minor fit tweak) ===
+    const KEY = 'lottery_num_state_v14';
     const DEFAULT_INV = { 1: 5, 2: 18, 3: 35, 4: 82, 5: 160 };
     let inv = loadInv();
     let plannedDraws = 0, doneDraws = 0, pendingResults = [], selectedTier = null;
     let running = false, muted = false, controlsLocked = false;
 
-    // Audio
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     let actx = null, master = null;
     function ensureAudio() {
@@ -589,7 +560,7 @@
     async function unlockAudio() {
       try { ensureAudio(); if (actx && actx.state !== 'running') await actx.resume(); } catch (e) { }
     }
-    function tone(freq = 520, time = 0.10, type = 'sine', gain = 0.16) {
+    function tone(freq = 480, time = 0.10, type = 'sine', gain = 0.16) {
       if (muted) return;
       ensureAudio();
       const o = actx.createOscillator(), g = actx.createGain();
@@ -601,11 +572,11 @@
       o.start(); o.stop(actx.currentTime + time);
     }
     function tick() { tone(450, 0.08, 'sine', 0.18); }
-    function thump() { tone(200, 0.18, 'sine', 0.18); }
+    function thump() { tone(300, 0.18, 'sine', 0.18); }
     function chime() {
       if (muted) return; ensureAudio();
       const t = actx.currentTime;
-      [[523, 0], [659, 0.1], [784, 0.22]].forEach(([f, off]) => {
+      [[392, 0], [494, 0.1], [587, 0.22]].forEach(([f, off]) => { 
         const o = actx.createOscillator(), g = actx.createGain();
         o.type = 'sine'; o.frequency.value = f;
         g.gain.setValueAtTime(0.0001, t + off);
@@ -616,7 +587,6 @@
       });
     }
 
-    // cache DOM
     const resultsEl = document.getElementById('results');
     const startBtn = document.getElementById('startBtn');
     const confirmBtn = document.getElementById('confirmBtn');
@@ -629,7 +599,6 @@
     const roller = document.getElementById('roller');
     const digit = document.getElementById('digit');
 
-    // ===== Animation (restored) =====
     function shade(hex, amt) {
       const c = hex.replace('#', ''); const n = parseInt(c, 16);
       let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
@@ -641,7 +610,7 @@
     function animateToResult(result) {
       return new Promise(resolve => {
         const t0 = performance.now();
-        const dur = 4000; // 4s演出
+        const dur = 4000;
         const accel = 0.28, decel = 0.48;
         const nums = [1, 2, 3, 4, 5];
         let lastSwitch = t0;
@@ -675,7 +644,7 @@
       });
     }
 
-    // Dynamic perfect-fit for landscape
+    // Fit: keep a little more room above confirm
     function fitLayout() {
       const header = document.getElementById('appHeader');
       const play = document.getElementById('play');
@@ -689,13 +658,14 @@
       const startH = startWrap.offsetHeight || 0;
       const bannerH = (selectedBanner.style.display !== 'none' ? selectedBanner.offsetHeight : 0);
       const resultsH = resultsEl.offsetHeight || 0;
-      const actionsH = (actions.style.display !== 'none' ? actions.offsetHeight : 72) + 16; // reserve when hidden
+      const actionsH = (actions.style.display !== 'none' ? actions.offsetHeight : 72) + 16;
+      const extraGap = 18; // move number slightly up
 
-      const avail = vpH - headerH - padTop - padBot - bigH - startH - bannerH - resultsH - actionsH - 10;
-      const rollerH = Math.max(200, Math.min(avail, Math.floor(vpH * 0.80)));
+      const avail = vpH - headerH - padTop - padBot - bigH - startH - bannerH - resultsH - actionsH - extraGap;
+      const rollerH = Math.max(200, Math.min(avail, Math.floor(vpH * 0.78))); // small reduction from 0.80
       roller.style.setProperty('--roller-h', rollerH + 'px');
 
-      const fs = Math.max(140, Math.min(Math.floor(rollerH * 0.56), 320));
+      const fs = Math.max(136, Math.min(Math.floor(rollerH * 0.56), 320));
       digit.style.setProperty('--digit-fs', fs + 'px');
     }
     const fitLater = () => requestAnimationFrame(fitLayout);
@@ -703,7 +673,6 @@
     window.addEventListener('resize', fitLater);
     window.addEventListener('orientationchange', () => setTimeout(fitLayout, 200));
 
-    // ===== Core lottery =====
     function loadInv() { try { const raw = localStorage.getItem(KEY); if (!raw) return { ...DEFAULT_INV }; const obj = JSON.parse(raw); return { ...DEFAULT_INV, ...obj }; } catch (e) { return { ...DEFAULT_INV }; } }
     function saveInv() { localStorage.setItem(KEY, JSON.stringify(inv)); }
     function totalLeft() { return Object.values(inv).reduce((a, b) => a + (b | 0), 0); }
@@ -752,37 +721,27 @@
       if (running) return;
       if (doneDraws >= plannedDraws) return;
       running = true; startBtn.disabled = true;
-      try {
-        const pick = weightedPick();
-        await animateToResult(pick);
-        pendingResults.push(pick);
-        doneDraws++;
-        addChip(pick);
-        const remain = plannedDraws - doneDraws;
-        if (remain > 0) {
-          [btn1, btn2, btn3].forEach(b => b.disabled = true);
-          updateStartLabel();
-          actions.style.display = 'none';
-          confirmBtn.disabled = true;
-          hint.textContent = '続けてスタートを押してください';
-          startBtn.disabled = false; // allow next draw
-        } else {
-          updateStartLabel();
-          actions.style.display = 'flex';
-          hint.textContent = '表示された結果から1つ選んでください';
-          setControlsLocked(true);
-        }
-      } catch (e) {
-        const banner = document.getElementById('errBanner');
-        banner.textContent = 'エラー: ' + (e && e.message ? e.message : e);
-        banner.style.display = 'block';
-        // graceful fallback: finish this draw immediately
-        const pick = 5;
-        digit.textContent = pick;
-      } finally {
-        running = false;
-        fitLayout();
+      const pick = weightedPick();
+      await animateToResult(pick);
+      pendingResults.push(pick);
+      doneDraws++;
+      addChip(pick);
+      const remain = plannedDraws - doneDraws;
+      if (remain > 0) {
+        [btn1, btn2, btn3].forEach(b => b.disabled = true);
+        updateStartLabel();
+        actions.style.display = 'none';
+        confirmBtn.disabled = true;
+        hint.textContent = '続けてスタートを押してください';
+        startBtn.disabled = false;
+      } else {
+        updateStartLabel();
+        actions.style.display = 'flex';
+        hint.textContent = '表示された結果から1つ選んでください';
+        setControlsLocked(true);
       }
+      running = false;
+      fitLayout();
     }
     function addChip(tier) {
       const chip = document.createElement('span');
@@ -859,7 +818,6 @@
       }
     }
 
-    // Bind
     document.getElementById('pick1').onclick = () => setDraws(1);
     document.getElementById('pick2').onclick = () => setDraws(2);
     document.getElementById('pick3').onclick = () => setDraws(3);
@@ -868,7 +826,7 @@
     document.getElementById('mute').onclick = async (e) => {
       muted = !muted; e.currentTarget.setAttribute('aria-pressed', String(muted));
       e.currentTarget.textContent = muted ? '🔇 ミュート' : '🔊 サウンド';
-      if (!muted) { try { await unlockAudio(); tone(600, 0.08, 'sine', 0.18); } catch (_) { } }
+      if (!muted) { try { await unlockAudio(); tone(480, 0.08, 'sine', 0.18); } catch (_) { } }
     };
 
     renderInv();

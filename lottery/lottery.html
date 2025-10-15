@@ -92,7 +92,7 @@
 
     @media(min-width:980px) {
       .main {
-        grid-template-columns: 1.1fr .9fr
+        grid-template-columns: 1.05fr .95fr
       }
     }
 
@@ -106,7 +106,7 @@
     .left {
       padding: 16px;
       display: grid;
-      gap: 16px
+      gap: 12px
     }
 
     .right {
@@ -124,7 +124,7 @@
     .bigBtns button {
       font-weight: 900;
       font-size: clamp(20px, 3vw, 28px);
-      padding: 22px 12px;
+      padding: 18px 12px;
       border-radius: 18px;
       border: 2px solid #2a4a79;
       background: linear-gradient(180deg, #2a5d9c, #21497c);
@@ -156,7 +156,7 @@
     .start button {
       font-size: clamp(22px, 3.2vw, 30px);
       font-weight: 900;
-      padding: 18px 32px;
+      padding: 14px 28px;
       border-radius: 999px;
       border: 2px solid #2b4f84;
       background: radial-gradient(120% 120% at 20% 10%, #3773c8, #244a86);
@@ -178,7 +178,7 @@
     .rollerWrap {
       display: grid;
       justify-items: center;
-      gap: 10px
+      gap: 8px
     }
 
     .roller {
@@ -193,8 +193,7 @@
       overflow: hidden;
       height: var(--roller-h, auto);
       aspect-ratio: 5/2;
-      margin-bottom: 8px;
-      /* small visual breathing space */
+      margin-bottom: 4px;
     }
 
     .roller::after {
@@ -242,11 +241,12 @@
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
-      justify-content: center
+      justify-content: center;
+      min-height: 44px
     }
 
     .chip {
-      padding: 12px 14px;
+      padding: 10px 12px;
       border-radius: 999px;
       font-weight: 900;
       border: 1px solid rgba(255, 255, 255, .15);
@@ -269,13 +269,13 @@
     .actions .confirm {
       font-weight: 1000;
       font-size: clamp(22px, 3.2vw, 34px);
-      padding: 18px 28px;
+      padding: 16px 26px;
       border-radius: 16px;
       border: 2px solid #2b4f84;
       background: radial-gradient(120% 120% at 20% 10%, #3773c8, #244a86);
       color: #fff;
       box-shadow: 0 12px 34px rgba(28, 88, 190, .45), inset 0 0 0 1px rgba(255, 255, 255, .18);
-      min-width: min(90%, 520px);
+      min-width: min(88%, 520px);
       cursor: pointer;
       transition: transform .06s, box-shadow .2s, opacity .2s;
     }
@@ -342,24 +342,24 @@
       display: none;
       justify-content: center;
       align-items: center;
-      gap: 16px;
-      padding: 12px 16px;
+      gap: 12px;
+      padding: 8px 12px;
       border-radius: 14px;
       border: 2px dashed rgba(255, 255, 255, .2);
-      background: rgba(0, 0, 0, .15);
+      background: rgba(0, 0, 0, .12);
       z-index: 10
     }
 
     .selectedBadge {
-      font-size: clamp(22px, 3vw, 28px);
+      font-size: clamp(20px, 2.4vw, 26px);
       font-weight: 1000;
-      padding: 10px 16px;
+      padding: 8px 14px;
       border-radius: 999px;
       color: #0b0f14
     }
 
     .selectedLabel {
-      font-size: clamp(18px, 2vw, 22px);
+      font-size: clamp(16px, 1.8vw, 20px);
       color: var(--muted)
     }
 
@@ -383,7 +383,7 @@
       animation: shake .24s linear
     }
 
-    /* ===== Landscape tweaks ===== */
+    /* ===== Landscape: "1画面に収める"最適化 ===== */
     @media (orientation: landscape) {
       .wrap {
         max-width: none;
@@ -410,10 +410,12 @@
 
       .playArea {
         min-height: 100svh;
-        padding: clamp(8px, 2vh, 16px);
+        padding: clamp(8px, 2vh, 14px);
         display: flex;
         flex-direction: column;
         gap: 6px;
+        /* 下はJSが actions 高さに応じて上書きする */
+        padding-bottom: calc(120px + var(--safe-bottom));
       }
 
       .left {
@@ -434,14 +436,14 @@
 
       .bigBtns button {
         font-size: clamp(18px, 2.2vw, 26px);
-        padding: 16px 10px;
+        padding: 14px 10px;
         border-radius: 16px
       }
 
       .rollerWrap {
         width: min(96vw, 1200px);
         margin: 0 auto;
-        gap: 6px
+        gap: 4px
       }
 
       .roller {
@@ -455,7 +457,7 @@
 
       .start button {
         font-size: clamp(18px, 2.4vw, 26px);
-        padding: 12px 24px
+        padding: 10px 22px
       }
 
       .selectedBanner {
@@ -466,23 +468,25 @@
       .results {
         width: min(96vw, 1200px);
         margin: 0 auto;
-        gap: 8px
+        gap: 8px;
+        min-height: 44px
       }
 
       .chip {
-        padding: 10px 12px
+        padding: 8px 10px
       }
 
+      /* 確定行：下に固定、背景は透明 */
       .actions {
-        position: sticky;
-        bottom: calc(var(--safe-bottom) + 8px);
-        padding-bottom: var(--safe-bottom);
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: calc(var(--safe-bottom) + 10px);
         width: min(96vw, 1200px);
-        margin: 8px auto 0;
-        margin-top: auto;
+        margin: 0;
         background: transparent;
-        /* no footer-like bg */
         border-radius: 0;
+        z-index: 40;
       }
 
       .inventoryPanel {
@@ -540,13 +544,14 @@
   </div>
 
   <script>
-    // === logic (same as v13, minor fit tweak) ===
-    const KEY = 'lottery_num_state_v14';
+    // === state ===
+    const KEY = 'lottery_num_state_v15';
     const DEFAULT_INV = { 1: 5, 2: 18, 3: 35, 4: 82, 5: 160 };
     let inv = loadInv();
     let plannedDraws = 0, doneDraws = 0, pendingResults = [], selectedTier = null;
     let running = false, muted = false, controlsLocked = false;
 
+    // ===== Audio (低め) =====
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     let actx = null, master = null;
     function ensureAudio() {
@@ -561,8 +566,7 @@
       try { ensureAudio(); if (actx && actx.state !== 'running') await actx.resume(); } catch (e) { }
     }
     function tone(freq = 480, time = 0.10, type = 'sine', gain = 0.16) {
-      if (muted) return;
-      ensureAudio();
+      if (muted) return; ensureAudio();
       const o = actx.createOscillator(), g = actx.createGain();
       o.type = type; o.frequency.value = freq;
       g.gain.setValueAtTime(0.0001, actx.currentTime);
@@ -571,12 +575,12 @@
       o.connect(g).connect(master);
       o.start(); o.stop(actx.currentTime + time);
     }
-    function tick() { tone(450, 0.08, 'sine', 0.18); }
-    function thump() { tone(300, 0.18, 'sine', 0.18); }
+    function tick() { tone(480, 0.08, 'sine', 0.18); }
+    function thump() { tone(180, 0.18, 'sine', 0.18); }
     function chime() {
       if (muted) return; ensureAudio();
       const t = actx.currentTime;
-      [[392, 0], [494, 0.1], [587, 0.22]].forEach(([f, off]) => { 
+      [[392, 0], [494, 0.1], [587, 0.22]].forEach(([f, off]) => {
         const o = actx.createOscillator(), g = actx.createGain();
         o.type = 'sine'; o.frequency.value = f;
         g.gain.setValueAtTime(0.0001, t + off);
@@ -587,6 +591,7 @@
       });
     }
 
+    // ===== DOM =====
     const resultsEl = document.getElementById('results');
     const startBtn = document.getElementById('startBtn');
     const confirmBtn = document.getElementById('confirmBtn');
@@ -596,9 +601,14 @@
     const selectedBanner = document.getElementById('selectedBanner');
     const selectedBadge = document.getElementById('selectedBadge');
     const selectedLabel = document.getElementById('selectedLabel');
+    const play = document.getElementById('play');
+    const header = document.getElementById('appHeader');
     const roller = document.getElementById('roller');
     const digit = document.getElementById('digit');
+    const bigBtns = document.getElementById('bigBtns');
+    const startWrap = document.getElementById('startWrap');
 
+    // ===== Utils =====
     function shade(hex, amt) {
       const c = hex.replace('#', ''); const n = parseInt(c, 16);
       let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
@@ -607,6 +617,7 @@
     }
     function colorFor(t) { return getComputedStyle(document.documentElement).getPropertyValue(`--c${t}`).trim(); }
 
+    // ===== Animation =====
     function animateToResult(result) {
       return new Promise(resolve => {
         const t0 = performance.now();
@@ -644,35 +655,41 @@
       });
     }
 
-    // Fit: keep a little more room above confirm
+    // ===== Layout fit (landscape: 1画面完結) =====
     function fitLayout() {
-      const header = document.getElementById('appHeader');
-      const play = document.getElementById('play');
-      const big = document.getElementById('bigBtns');
-      const startWrap = document.getElementById('startWrap');
       const vpH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-      const padTop = parseFloat(getComputedStyle(play).paddingTop) || 0;
-      const padBot = parseFloat(getComputedStyle(play).paddingBottom) || 0;
+      const safeBot = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-bottom')) || 0;
+
+      // 1) actionsの実高さ（非表示なら仮の高さ）
+      let actionsH = actions.style.display !== 'none' ? actions.offsetHeight : 96;
+      // 2) playエリア下に余白を確保（被り防止）
+      play.style.paddingBottom = `calc(${actionsH + 12}px + var(--safe-bottom))`;
+
+      // 3) 各要素の高さ
       const headerH = header.offsetHeight || 0;
-      const bigH = big.offsetHeight || 0;
+      const padTop = parseFloat(getComputedStyle(play).paddingTop) || 0;
+      const padBot = parseFloat(getComputedStyle(play).paddingBottom) || 0; // includes actionsH now
+      const bigH = bigBtns.offsetHeight || 0;
       const startH = startWrap.offsetHeight || 0;
       const bannerH = (selectedBanner.style.display !== 'none' ? selectedBanner.offsetHeight : 0);
-      const resultsH = resultsEl.offsetHeight || 0;
-      const actionsH = (actions.style.display !== 'none' ? actions.offsetHeight : 72) + 16;
-      const extraGap = 18; // move number slightly up
+      const resultsH = Math.max(44, resultsEl.offsetHeight || 0);
 
-      const avail = vpH - headerH - padTop - padBot - bigH - startH - bannerH - resultsH - actionsH - extraGap;
-      const rollerH = Math.max(200, Math.min(avail, Math.floor(vpH * 0.78))); // small reduction from 0.80
+      // 4) ローラーに割り当て可能な高さ（余白少し確保）
+      const extraGap = 10;
+      const avail = vpH - headerH - padTop - padBot - bigH - startH - bannerH - resultsH - extraGap;
+      const rollerH = Math.max(200, Math.min(avail, Math.floor(vpH * 0.70))); // 70%上限で確実に収める
       roller.style.setProperty('--roller-h', rollerH + 'px');
 
-      const fs = Math.max(136, Math.min(Math.floor(rollerH * 0.56), 320));
+      // 5) 数字のフォントサイズ（ローラー比率）
+      const fs = Math.max(120, Math.min(Math.floor(rollerH * 0.56), 300));
       digit.style.setProperty('--digit-fs', fs + 'px');
     }
     const fitLater = () => requestAnimationFrame(fitLayout);
     window.addEventListener('load', fitLater);
     window.addEventListener('resize', fitLater);
-    window.addEventListener('orientationchange', () => setTimeout(fitLayout, 200));
+    window.addEventListener('orientationchange', () => setTimeout(fitLayout, 150));
 
+    // ===== Inventory & draw logic =====
     function loadInv() { try { const raw = localStorage.getItem(KEY); if (!raw) return { ...DEFAULT_INV }; const obj = JSON.parse(raw); return { ...DEFAULT_INV, ...obj }; } catch (e) { return { ...DEFAULT_INV }; } }
     function saveInv() { localStorage.setItem(KEY, JSON.stringify(inv)); }
     function totalLeft() { return Object.values(inv).reduce((a, b) => a + (b | 0), 0); }
@@ -792,10 +809,10 @@
       fitLayout();
     }
 
+    // ===== Inventory UI =====
+    const invEl = document.getElementById('inv');
     function el(tag, cls, html) { const x = document.createElement(tag); if (cls) x.className = cls; if (html != null) x.innerHTML = html; return x; }
     function btn(txt, fn) { const b = document.createElement('button'); b.textContent = txt; b.onclick = fn; return b; }
-
-    const invEl = document.getElementById('inv');
     function renderInv() {
       invEl.innerHTML = '';
       const rows = [
@@ -818,6 +835,7 @@
       }
     }
 
+    // ===== Bindings =====
     document.getElementById('pick1').onclick = () => setDraws(1);
     document.getElementById('pick2').onclick = () => setDraws(2);
     document.getElementById('pick3').onclick = () => setDraws(3);

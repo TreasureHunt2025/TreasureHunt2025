@@ -600,8 +600,8 @@
       o.connect(g).connect(master);
       o.start(); o.stop(actx.currentTime + time);
     }
-    function tick() { tone(620, 0.08, 'sine', 0.18); }
-    function thump() { tone(220, 0.18, 'sine', 0.18); }
+    function tick() { tone(450, 0.08, 'sine', 0.18); }
+    function thump() { tone(200, 0.18, 'sine', 0.18); }
     function chime() {
       if (muted) return; ensureAudio();
       const t = actx.currentTime;

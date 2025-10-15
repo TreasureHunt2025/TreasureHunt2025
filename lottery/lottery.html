@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>宝探し企画景品くじ引き</title>
+  <style>
+    :root {
+      --bg1: #214b86;
+      --bg2: #11325c;
+      --panel: #173864;
+      --edge: #2f5a94;
+      --muted: #c7d6e6;
+      --txt: #f2f7fc;
+      --c1: #d4af37;
+      --c2: #60a5fa;
+      --c3: #22d3ee;
+      --c4: #34d399;
+      --c5: #64748b;
+      --accent: #61b0ff;
+      --accentGlow: rgba(97, 176, 255, .35);
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 70% -10%, var(--bg1) 0%, var(--bg2) 70%);
+      color: var(--txt);
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px 16px 96px
+    }
+
+    header {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(22px, 2.6vw, 32px);
+      letter-spacing: .02em;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, .25)
+    }
+
+    .mute {
+      border: 1px solid var(--edge);
+      background: #1b4275;
+      color: var(--txt);
+      border-radius: 999px;
+      padding: 8px 12px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, .25)
+    }
+
+    .main {
+      display: grid;
+      gap: 16px
+    }
+
+    @media(min-width:980px) {
+      .main {
+        grid-template-columns: 1.1fr .9fr
+      }
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--edge);
+      border-radius: 16px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .35)
+    }
+
+    .left {
+      padding: 16px;
+      display: grid;
+      gap: 16px
+    }
+
+    .right {
+      padding: 16px;
+      display: grid;
+      gap: 12px
+    }
+
+    .bigBtns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px
+    }
+
+    .bigBtns button {
+      font-weight: 900;
+      font-size: clamp(20px, 3vw, 28px);
+      padding: 22px 12px;
+      border-radius: 18px;
+      border: 2px solid #2a4a79;
+      background: linear-gradient(180deg, #2a5d9c, #21497c);
+      color: #fff;
+      cursor: pointer;
+      text-shadow: 0 1px 0 rgba(0, 0, 0, .4);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, .28), inset 0 0 0 1px rgba(255, 255, 255, .06);
+      transition: transform .06s, box-shadow .2s, border-color .2s, opacity .2s;
+    }
+
+    .bigBtns button:active {
+      transform: translateY(1px)
+    }
+
+    .bigBtns button.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accentGlow), 0 10px 24px rgba(0, 0, 0, .28);
+    }
+
+    .bigBtns button[disabled] {
+      opacity: .55;
+      cursor: not-allowed
+    }
+
+    .start {
+      justify-self: center
+    }
+
+    .start button {
+      font-size: clamp(22px, 3.2vw, 30px);
+      font-weight: 900;
+      padding: 18px 32px;
+      border-radius: 999px;
+      border: 2px solid #2b4f84;
+      background: radial-gradient(120% 120% at 20% 10%, #3773c8, #244a86);
+      box-shadow: 0 12px 36px rgba(28, 88, 190, .45);
+      color: #fff;
+      cursor: pointer;
+      transition: transform .06s, box-shadow .2s, opacity .2s;
+    }
+
+    .start button:active {
+      transform: translateY(1px)
+    }
+
+    .start button:disabled {
+      opacity: .55;
+      cursor: not-allowed
+    }
+
+    .rollerWrap {
+      display: grid;
+      justify-items: center;
+      gap: 10px
+    }
+
+    .roller {
+      width: min(100%, 640px);
+      aspect-ratio: 5/2;
+      display: grid;
+      place-items: center;
+      border-radius: 22px;
+      border: 2px solid #2b4e80;
+      background: radial-gradient(120% 160% at 20% 10%, #21416f, #18325a);
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .05), 0 24px 70px rgba(0, 0, 0, .35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .roller::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, .08), rgba(255, 255, 255, 0) 40%);
+    }
+
+    .digit {
+      font-size: min(22vw, 210px);
+      font-weight: 1000;
+      letter-spacing: .02em;
+      text-shadow: 0 6px 16px rgba(0, 0, 0, .35);
+      line-height: 1;
+      padding-top: .1em;
+      transition: transform .05s;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .digit.flash {
+      animation: flash .7s ease-out
+    }
+
+    @keyframes flash {
+      0% {
+        transform: scale(1);
+        filter: brightness(1)
+      }
+
+      30% {
+        transform: scale(1.22);
+        filter: brightness(1.35)
+      }
+
+      100% {
+        transform: scale(1);
+        filter: brightness(1)
+      }
+    }
+
+    .results {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center
+    }
+
+    .chip {
+      padding: 12px 14px;
+      border-radius: 999px;
+      font-weight: 900;
+      border: 1px solid rgba(255, 255, 255, .15);
+      cursor: pointer;
+      color: #0b0f14
+    }
+
+    .chip.sel {
+      box-shadow: 0 0 0 3px var(--accent) inset
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      align-items: center
+    }
+
+    .actions .confirm {
+      font-weight: 1000;
+      font-size: clamp(22px, 3.2vw, 34px);
+      padding: 18px 28px;
+      border-radius: 16px;
+      border: 2px solid #2b4f84;
+      background: radial-gradient(120% 120% at 20% 10%, #3773c8, #244a86);
+      color: #fff;
+      box-shadow: 0 12px 34px rgba(28, 88, 190, .45), inset 0 0 0 1px rgba(255, 255, 255, .18);
+      min-width: min(90%, 520px);
+      cursor: pointer;
+      transition: transform .06s, box-shadow .2s, opacity .2s;
+    }
+
+    .actions .confirm:active {
+      transform: translateY(1px)
+    }
+
+    .actions .confirm[disabled] {
+      opacity: .55;
+      cursor: not-allowed
+    }
+
+    .muted {
+      color: var(--muted)
+    }
+
+    .invGrid {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto auto;
+      gap: 10px;
+      align-items: center
+    }
+
+    .tierName {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900
+    }
+
+    .dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%
+    }
+
+    .qty {
+      font-variant-numeric: tabular-nums;
+      justify-self: end;
+      min-width: 2ch;
+      text-align: right
+    }
+
+    .invBtn {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #2a3f62;
+      background: #1b4275;
+      color: #fff;
+      cursor: pointer
+    }
+
+    .invInput {
+      width: 100px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #2a3f62;
+      background: #122744;
+      color: #fff
+    }
+
+    .selectedBanner {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 2px dashed rgba(255, 255, 255, .2);
+      background: rgba(0, 0, 0, .15)
+    }
+
+    .selectedBadge {
+      font-size: clamp(22px, 3vw, 28px);
+      font-weight: 1000;
+      padding: 10px 16px;
+      border-radius: 999px;
+      color: #0b0f14
+    }
+
+    .selectedLabel {
+      font-size: clamp(18px, 2vw, 22px);
+      color: var(--muted)
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0)
+      }
+
+      25% {
+        transform: translateX(-3px)
+      }
+
+      75% {
+        transform: translateX(3px)
+      }
+    }
+
+    .shake {
+      animation: shake .24s linear
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <h1>宝探し企画景品くじ引き</h1>
+      <button id="mute" class="mute" aria-pressed="false">🔊 サウンド</button>
+    </header>
+
+    <div class="main">
+      <section class="panel left">
+        <div class="bigBtns">
+          <button id="pick1">1回引く</button>
+          <button id="pick2">2回引く</button>
+          <button id="pick3">3回引く</button>
+        </div>
+
+        <div class="rollerWrap">
+          <div class="roller" id="roller">
+            <div class="digit" id="digit">–</div>
+          </div>
+          <div class="start">
+            <button id="startBtn" disabled>スタート</button>
+          </div>
+        </div>
+
+        <div class="selectedBanner" id="selectedBanner">
+          <span class="selectedLabel" id="selectedLabel">選択中：</span>
+          <span class="selectedBadge" id="selectedBadge" style="background:#999">—</span>
+        </div>
+
+        <div class="results" id="results"></div>
+        <div class="actions" id="actions" style="display:none">
+          <span class="muted" id="hint">表示された結果から1つ選んでください</span>
+          <button id="confirmBtn" class="confirm" disabled>確定</button>
+        </div>
+      </section>
+
+      <aside class="panel right">
+        <h3 style="margin:0 0 6px">在庫状況</h3>
+        <div class="invGrid" id="inv"></div>
+        <p class="muted" style="margin:.5em 0 0">※数値を直接編集するか±で調整できます。</p>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const KEY = 'lottery_num_state_v5';
+    const DEFAULT_INV = { 1: 5, 2: 18, 3: 35, 4: 82, 5: 160 };
+    let inv = loadInv();
+    let plannedDraws = 0, doneDraws = 0, pendingResults = [], selectedTier = null;
+    let running = false, muted = false, controlsLocked = false;
+
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let actx = null;
+    function ensureAudio() { if (!actx) actx = new AudioCtx(); }
+    function tone(freq = 340, time = 0.04, type = 'sine', gain = 0.016) {
+      if (muted) return; ensureAudio();
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = type; o.frequency.value = freq; g.gain.value = gain;
+      o.connect(g).connect(actx.destination); o.start(); o.stop(actx.currentTime + time);
+    }
+    function tick() { tone(340, 0.03, 'sine', 0.013); }
+    function thump() { tone(140, 0.1, 'sine', 0.03); }
+    function chime() {
+      if (muted) return; ensureAudio();
+      const t = actx.currentTime;
+      [[392, 0], [494, 0.1], [587, 0.2]].forEach(([f, off]) => {
+        const o = actx.createOscillator(), g = actx.createGain();
+        o.type = 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t + off);
+        g.gain.linearRampToValueAtTime(0.022, t + off + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + off + 0.32);
+        o.connect(g).connect(actx.destination);
+        o.start(t + off); o.stop(t + off + 0.34);
+      });
+    }
+
+    function loadInv() { try { const raw = localStorage.getItem(KEY); if (!raw) return { ...DEFAULT_INV }; const obj = JSON.parse(raw); return { ...DEFAULT_INV, ...obj }; } catch (e) { return { ...DEFAULT_INV }; } }
+    function saveInv() { localStorage.setItem(KEY, JSON.stringify(inv)); }
+    function totalLeft() { return Object.values(inv).reduce((a, b) => a + (b | 0), 0); }
+    function weightedPick() {
+      const tot = totalLeft(); if (tot <= 0) return 5;
+      let r = Math.floor(Math.random() * tot);
+      for (let t = 1; t <= 5; t++) { const c = inv[t] | 0; if (r < c) return t; r -= c; }
+      return 5;
+    }
+    function colorFor(t) { return getComputedStyle(document.documentElement).getPropertyValue(`--c${t}`).trim(); }
+
+    const invEl = document.getElementById('inv');
+    function renderInv() {
+      invEl.innerHTML = '';
+      const rows = [
+        { id: 1, name: '1等', color: colorFor(1) },
+        { id: 2, name: '2等', color: colorFor(2) },
+        { id: 3, name: '3等', color: colorFor(3) },
+        { id: 4, name: '4等', color: colorFor(4) },
+        { id: 5, name: '5等', color: colorFor(5) },
+      ];
+      for (const r of rows) {
+        const name = el('div', 'tierName', `<span class="dot" style="background:${r.color}"></span><span>${r.name}</span>`);
+        const qty = el('div', 'qty', String(inv[r.id] | 0));
+        const minus = btn('−', () => { inv[r.id] = Math.max(0, (inv[r.id] | 0) - 1); qty.textContent = inv[r.id]; saveInv(); });
+        minus.className = 'invBtn';
+        const plus = btn('+', () => { inv[r.id] = (inv[r.id] | 0) + 1; qty.textContent = inv[r.id]; saveInv(); });
+        plus.className = 'invBtn';
+        const set = document.createElement('input'); set.type = 'number'; set.className = 'invInput'; set.value = inv[r.id] | 0; set.min = '0';
+        set.onchange = () => { inv[r.id] = Math.max(0, Math.floor(Number(set.value) || 0)); qty.textContent = inv[r.id]; saveInv(); };
+        invEl.append(name, qty, minus, plus, set);
+      }
+    }
+    function el(tag, cls, html) { const x = document.createElement(tag); if (cls) x.className = cls; if (html != null) x.innerHTML = html; return x; }
+    function btn(txt, fn) { const b = document.createElement('button'); b.textContent = txt; b.onclick = fn; return b; }
+
+    const digitEl = document.getElementById('digit');
+    const roller = document.getElementById('roller');
+    function animateToResult(result) {
+      return new Promise(resolve => {
+        const t0 = performance.now();
+        const dur = 4000;
+        const accel = 0.28, decel = 0.48;
+        const nums = [1, 2, 3, 4, 5];
+        let lastSwitch = t0;
+        function easeIn(x) { return x * x; }
+        function easeOutQuint(x) { return 1 - Math.pow(1 - x, 5); }
+        function frame(now) {
+          const p = Math.min(1, (now - t0) / dur);
+          let spd;
+          if (p < accel) { spd = 1.0 + 3.0 * easeIn(p / accel); }
+          else if (p > 1 - decel) { spd = 0.6 + 0.9 * (1 - easeOutQuint((1 - p) / decel)); }
+          else { spd = 3.8; }
+          const gap = 1000 / (9 * spd);
+          if (now - lastSwitch > gap) {
+            const n = nums[Math.floor(Math.random() * nums.length)];
+            digitEl.textContent = n;
+            digitEl.style.color = '#0b0f14';
+            roller.style.background = `linear-gradient(180deg, ${shade(colorFor(n), 0.2)}, ${shade(colorFor(n), -0.22)})`;
+            lastSwitch = now;
+            tick();
+          }
+          if (p < 1) requestAnimationFrame(frame);
+          else {
+            digitEl.textContent = result;
+            digitEl.classList.remove('flash'); void digitEl.offsetWidth; digitEl.classList.add('flash');
+            roller.style.background = `linear-gradient(180deg, ${shade(colorFor(result), 0.12)}, ${shade(colorFor(result), -0.25)})`;
+            thump(); setTimeout(chime, 80);
+            resolve();
+          }
+        }
+        requestAnimationFrame(frame);
+      });
+    }
+    function shade(hex, amt) {
+      const c = hex.replace('#', ''); const n = parseInt(c, 16);
+      let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+      const f = (x) => Math.max(0, Math.min(255, Math.floor(amt >= 0 ? x + (255 - x) * amt : x * (1 + amt))));
+      return '#' + ((1 << 24) + (f(r) << 16) + (f(g) << 8) + f(b)).toString(16).slice(1);
+    }
+
+    const resultsEl = document.getElementById('results');
+    const startBtn = document.getElementById('startBtn');
+    const confirmBtn = document.getElementById('confirmBtn');
+    const actions = document.getElementById('actions');
+    const hint = document.getElementById('hint');
+    const btn1 = document.getElementById('pick1'), btn2 = document.getElementById('pick2'), btn3 = document.getElementById('pick3');
+    const selectedBanner = document.getElementById('selectedBanner');
+    const selectedBadge = document.getElementById('selectedBadge');
+    const selectedLabel = document.getElementById('selectedLabel');
+
+    function selectCountButton(n) {
+      [btn1, btn2, btn3].forEach((b, i) => {
+        const k = i + 1; const sel = (k === n);
+        b.classList.toggle('selected', sel);
+        b.setAttribute('aria-pressed', String(sel));
+        if (sel) { b.classList.remove('shake'); b.style.transform = 'scale(0.98)'; setTimeout(() => b.style.transform = '', 140); }
+      });
+    }
+    function setControlsLocked(lock) {
+      controlsLocked = lock;
+      [btn1, btn2, btn3].forEach(b => { b.disabled = lock; });
+      startBtn.disabled = lock || (Math.max(0, plannedDraws - doneDraws) <= 0);
+      confirmBtn.disabled = lock ? confirmBtn.disabled : confirmBtn.disabled;
+    }
+    function setDraws(n) {
+      if (controlsLocked) { nudge([btn1, btn2, btn3]); return; }
+      if (totalLeft() <= 0) { alert('在庫がありません'); return; }
+      plannedDraws = n; doneDraws = 0; pendingResults = []; selectedTier = null;
+      selectedBanner.style.display = 'none';
+      startBtn.disabled = false; updateStartLabel();
+      resultsEl.innerHTML = '';
+      actions.style.display = 'none';
+      confirmBtn.disabled = true;
+      digitEl.textContent = '–';
+      roller.style.background = 'radial-gradient(120% 160% at 20% 10%, #21416f, #18325a)';
+      selectCountButton(n);
+    }
+    function updateStartLabel() {
+      const remain = Math.max(0, plannedDraws - doneDraws);
+      startBtn.textContent = remain > 0 ? `スタート（残り ${remain}）` : 'スタート';
+      startBtn.disabled = controlsLocked || remain <= 0;
+    }
+    async function runOneDraw() {
+      if (running) return;
+      if (doneDraws >= plannedDraws) return;
+      running = true; startBtn.disabled = true;
+      const pick = weightedPick();
+      await animateToResult(pick);
+      pendingResults.push(pick);
+      doneDraws++;
+      addChip(pick);
+      const remain = plannedDraws - doneDraws;
+      if (remain > 0) {
+        [btn1, btn2, btn3].forEach(b => b.disabled = true);
+        updateStartLabel();
+        actions.style.display = 'none';
+        confirmBtn.disabled = true;
+        hint.textContent = '続けてスタートを押してください';
+      } else {
+        updateStartLabel();
+        actions.style.display = 'flex';
+        hint.textContent = '表示された結果から1つ選んでください';
+        if (plannedDraws === 1) {
+          selectChip(resultsEl.lastElementChild);
+        }
+        setControlsLocked(true);
+      }
+      running = false;
+    }
+    function addChip(tier) {
+      const chip = document.createElement('span');
+      chip.className = 'chip'; chip.style.background = colorFor(tier);
+      chip.textContent = `${tier}等`;
+      chip.onclick = () => selectChip(chip);
+      resultsEl.appendChild(chip);
+    }
+    function selectChip(chipEl) {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('sel'));
+      chipEl.classList.add('sel');
+      const tier = Number(chipEl.textContent[0]);
+      selectedTier = tier;
+      const left = inv[tier] | 0;
+      confirmBtn.disabled = left <= 0;
+      hint.textContent = left > 0 ? `${tier}等 を授与（残り ${left}）` : `${tier}等 は在庫切れ。他を選んでください`;
+      selectedBadge.style.background = colorFor(tier);
+      selectedBadge.textContent = `${tier}等`;
+      selectedLabel.textContent = plannedDraws === 1 ? '今回の結果：' : '確定候補：';
+      selectedBanner.style.display = 'flex';
+      setControlsLocked(true);
+    }
+    function confirmAward() {
+      if (selectedTier == null) { alert('授与する等級を選んでください'); return; }
+      if ((inv[selectedTier] | 0) <= 0) { alert('在庫切れです'); return; }
+      inv[selectedTier]--; saveInv(); renderInv();
+      plannedDraws = 0; doneDraws = 0; pendingResults = []; selectedTier = null;
+      startBtn.disabled = true; confirmBtn.disabled = true;
+      [btn1, btn2, btn3].forEach(b => { b.classList.remove('selected'); b.disabled = false; });
+      resultsEl.innerHTML = '';
+      selectedBanner.style.display = 'none';
+      hint.textContent = '確定しました';
+      setControlsLocked(false);
+    }
+    function nudge(els) { (Array.isArray(els) ? els : [els]).forEach(e => { e.classList.remove('shake'); void e.offsetWidth; e.classList.add('shake'); }); }
+
+    document.getElementById('pick1').onclick = () => setDraws(1);
+    document.getElementById('pick2').onclick = () => setDraws(2);
+    document.getElementById('pick3').onclick = () => setDraws(3);
+    startBtn.onclick = runOneDraw;
+    confirmBtn.onclick = confirmAward;
+    document.getElementById('mute').onclick = (e) => {
+      muted = !muted; e.currentTarget.setAttribute('aria-pressed', String(muted));
+      e.currentTarget.textContent = muted ? '🔇 ミュート' : '🔊 サウンド';
+      if (!muted) { try { ensureAudio(); tone(300, 0.04, 'sine', 0.02); } catch (_) { } }
+    };
+
+    renderInv();
+  </script>
+</body>
+
+</html>

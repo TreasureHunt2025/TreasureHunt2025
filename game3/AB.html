@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#070a12" />
+  <title>2択クイズ！ | 宝探し企画</title>
+  <link rel="stylesheet" href="./AB.css" />
+</head>
+
+<body>
+  <main class="wrap">
+    <header class="hud">
+      <div class="title">2択クイズ</div>
+      <div class="streak">連続正解 <span id="streak">0</span> / 5</div>
+    </header>
+
+    <section class="panel" aria-labelledby="question">
+      <div id="progress" class="progress" aria-label="進行状況">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+
+      <h1 id="question" class="question">（開始で表示）</h1>
+
+      <div class="choices" role="group" aria-label="選択肢">
+        <button id="btnA" class="btn choice" data-index="0">A</button>
+        <button id="btnB" class="btn choice" data-index="1">B</button>
+      </div>
+
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+      <div class="footerhint">スマホ：選択肢をタップ</div>
+    </section>
+  </main>
+
+  <!-- 開始スプラッシュ -->
+  <div id="splash" role="dialog" aria-modal="true">
+    <div class="splash-card">
+      <h1>2択クイズ</h1>
+      <p class="splash-cond"><strong>5連続正解でクリア</strong></p>
+      <div class="touch-help" role="note" aria-live="polite">
+        <ul class="splash-rules">
+          <li>20問からランダムで<strong>5問</strong>出題</li>
+          <li>1問でも間違えると<strong>最初から</strong></li>
+        </ul>
+      </div>
+      <p class="splash-sub">タップして開始</p>
+      <button id="startQuiz" class="btn-primary">PLAY</button>
+    </div>
+  </div>
+
+  <script src="./AB.js"></script>
+</body>
+
+</html>

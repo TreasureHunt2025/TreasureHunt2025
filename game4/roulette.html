@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#070a12" />
+  <title>宝箱ルーレット | 宝探し企画</title>
+  <link rel="stylesheet" href="./roulette.css" />
+</head>
+
+<body>
+  <main class="wrap">
+    <header class="hud">
+      <div class="title">宝箱ルーレット</div>
+      <div class="hud-right">
+        <div class="streak">連勝 <span id="streak">0</span> / 3</div>
+        <div class="muted" id="phase">シャッフル待機</div>
+      </div>
+    </header>
+
+    <section class="panel" id="panel" aria-label="宝箱エリア">
+      <div class="grid" id="grid" role="group" aria-label="宝箱を選択">
+        <!-- 6個の宝箱（ボタン）-->
+        <button class="chest" data-idx="0" aria-label="宝箱 1">
+          <span class="lid"></span><span class="lock">🔒</span><span class="treasure">💎</span>
+        </button>
+        <button class="chest" data-idx="1" aria-label="宝箱 2">
+          <span class="lid"></span><span class="lock">🔒</span><span class="treasure">💎</span>
+        </button>
+        <button class="chest" data-idx="2" aria-label="宝箱 3">
+          <span class="lid"></span><span class="lock">🔒</span><span class="treasure">💎</span>
+        </button>
+        <button class="chest" data-idx="3" aria-label="宝箱 4">
+          <span class="lid"></span><span class="lock">🔒</span><span class="treasure">💎</span>
+        </button>
+        <button class="chest" data-idx="4" aria-label="宝箱 5">
+          <span class="lid"></span><span class="lock">🔒</span><span class="treasure">💎</span>
+        </button>
+        <button class="chest" data-idx="5" aria-label="宝箱 6">
+          <span class="lid"></span><span class="lock">🔒</span><span class="treasure">💎</span>
+        </button>
+      </div>
+
+      <!-- 中央メッセージ -->
+      <div class="fx" id="fx" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <!-- 開始スプラッシュ -->
+  <div id="splash" role="dialog" aria-modal="true">
+    <div class="splash-card">
+      <h1>宝箱ルーレット</h1>
+      <p class="splash-cond"><strong>3回連続成功でクリア！</strong></p>
+      <div class="touch-help">
+        <ul class="splash-rules">
+          <li>宝箱は<strong>6つ</strong>、中身が入っているのは<strong>1つだけ</strong></li>
+          <li>シャッフルされた場所をよく見よう！</li>
+          <li>止まったら<strong>1つ正解を選ぶ</strong>だけ</li>
+          <li>2~3回目はどんどん早くなるぞ！</li>
+          <li>操作：<b>箱をタップ</b></li>
+        </ul>
+      </div>
+      <p class="splash-sub">タップで開始</p>
+      <button id="startBtn" class="btn-primary">PLAY</button>
+    </div>
+  </div>
+
+  <script src="./roulette.js"></script>
+</body>
+
+</html>

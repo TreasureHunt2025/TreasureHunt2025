@@ -491,6 +491,20 @@
         border-top-right-radius: 18px;
       }
     }
+
+    /* Error banner */
+    #errBanner {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 9999;
+      display: none;
+      padding: 10px 14px;
+      background: #b91c1c;
+      color: #fff;
+      font-weight: 700;
+    }
   </style>
 </head>
 
@@ -538,9 +552,24 @@
     </main>
   </div>
 
+  <div id="errBanner"></div>
+
   <script>
+    // ===== Error surface (helps on device) =====
+    (function () {
+      const banner = document.getElementById('errBanner');
+      window.addEventListener('error', e => {
+        banner.textContent = 'エラー: ' + (e && e.message ? e.message : '不明なエラー');
+        banner.style.display = 'block';
+      });
+      window.addEventListener('unhandledrejection', e => {
+        banner.textContent = 'エラー: ' + (e && e.reason && e.reason.message ? e.reason.message : 'Promise でエラー');
+        banner.style.display = 'block';
+      });
+    })();
+
     // === logic ===
-    const KEY = 'lottery_num_state_v11';
+    const KEY = 'lottery_num_state_v13';
     const DEFAULT_INV = { 1: 5, 2: 18, 3: 35, 4: 82, 5: 160 };
     let inv = loadInv();
     let plannedDraws = 0, doneDraws = 0, pendingResults = [], selectedTier = null;
@@ -587,34 +616,85 @@
       });
     }
 
+    // cache DOM
+    const resultsEl = document.getElementById('results');
+    const startBtn = document.getElementById('startBtn');
+    const confirmBtn = document.getElementById('confirmBtn');
+    const actions = document.getElementById('actions');
+    const hint = document.getElementById('hint');
+    const btn1 = document.getElementById('pick1'), btn2 = document.getElementById('pick2'), btn3 = document.getElementById('pick3');
+    const selectedBanner = document.getElementById('selectedBanner');
+    const selectedBadge = document.getElementById('selectedBadge');
+    const selectedLabel = document.getElementById('selectedLabel');
+    const roller = document.getElementById('roller');
+    const digit = document.getElementById('digit');
+
+    // ===== Animation (restored) =====
+    function shade(hex, amt) {
+      const c = hex.replace('#', ''); const n = parseInt(c, 16);
+      let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+      const f = (x) => Math.max(0, Math.min(255, Math.floor(amt >= 0 ? x + (255 - x) * amt : x * (1 + amt))));
+      return '#' + ((1 << 24) + (f(r) << 16) + (f(g) << 8) + f(b)).toString(16).slice(1);
+    }
+    function colorFor(t) { return getComputedStyle(document.documentElement).getPropertyValue(`--c${t}`).trim(); }
+
+    function animateToResult(result) {
+      return new Promise(resolve => {
+        const t0 = performance.now();
+        const dur = 4000; // 4s演出
+        const accel = 0.28, decel = 0.48;
+        const nums = [1, 2, 3, 4, 5];
+        let lastSwitch = t0;
+        function easeIn(x) { return x * x; }
+        function easeOutQuint(x) { return 1 - Math.pow(1 - x, 5); }
+        function frame(now) {
+          const p = Math.min(1, (now - t0) / dur);
+          let spd;
+          if (p < accel) { spd = 1.0 + 3.0 * easeIn(p / accel); }
+          else if (p > 1 - decel) { spd = 0.6 + 0.9 * (1 - easeOutQuint((1 - p) / decel)); }
+          else { spd = 3.8; }
+          const gap = 1000 / (9 * spd);
+          if (now - lastSwitch > gap) {
+            const n = nums[Math.floor(Math.random() * nums.length)];
+            digit.textContent = n;
+            digit.style.color = '#0b0f14';
+            roller.style.background = `linear-gradient(180deg, ${shade(colorFor(n), 0.2)}, ${shade(colorFor(n), -0.22)})`;
+            lastSwitch = now;
+            tick();
+          }
+          if (p < 1) requestAnimationFrame(frame);
+          else {
+            digit.textContent = result;
+            digit.classList.remove('flash'); void digit.offsetWidth; digit.classList.add('flash');
+            roller.style.background = `linear-gradient(180deg, ${shade(colorFor(result), 0.12)}, ${shade(colorFor(result), -0.25)})`;
+            thump(); setTimeout(chime, 80);
+            resolve();
+          }
+        }
+        requestAnimationFrame(frame);
+      });
+    }
+
     // Dynamic perfect-fit for landscape
     function fitLayout() {
       const header = document.getElementById('appHeader');
       const play = document.getElementById('play');
       const big = document.getElementById('bigBtns');
       const startWrap = document.getElementById('startWrap');
-      const roller = document.getElementById('roller');
-      const digit = document.getElementById('digit');
-      const actions = document.getElementById('actions');
-      const banner = document.getElementById('selectedBanner');
-      const results = document.getElementById('results');
-
       const vpH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
       const padTop = parseFloat(getComputedStyle(play).paddingTop) || 0;
       const padBot = parseFloat(getComputedStyle(play).paddingBottom) || 0;
       const headerH = header.offsetHeight || 0;
       const bigH = big.offsetHeight || 0;
       const startH = startWrap.offsetHeight || 0;
-      const bannerH = (banner.style.display !== 'none' ? banner.offsetHeight : 0);
-      const resultsH = results.offsetHeight || 0;
+      const bannerH = (selectedBanner.style.display !== 'none' ? selectedBanner.offsetHeight : 0);
+      const resultsH = resultsEl.offsetHeight || 0;
       const actionsH = (actions.style.display !== 'none' ? actions.offsetHeight : 72) + 16; // reserve when hidden
 
-      // Make roller as tall as possible but keep confirm visible
       const avail = vpH - headerH - padTop - padBot - bigH - startH - bannerH - resultsH - actionsH - 10;
-      const rollerH = Math.max(200, Math.min(avail, Math.floor(vpH * 0.80))); // taller cap (80% of viewport)
+      const rollerH = Math.max(200, Math.min(avail, Math.floor(vpH * 0.80)));
       roller.style.setProperty('--roller-h', rollerH + 'px');
 
-      // Digit font-size proportional to roller height
       const fs = Math.max(140, Math.min(Math.floor(rollerH * 0.56), 320));
       digit.style.setProperty('--digit-fs', fs + 'px');
     }
@@ -623,6 +703,7 @@
     window.addEventListener('resize', fitLater);
     window.addEventListener('orientationchange', () => setTimeout(fitLayout, 200));
 
+    // ===== Core lottery =====
     function loadInv() { try { const raw = localStorage.getItem(KEY); if (!raw) return { ...DEFAULT_INV }; const obj = JSON.parse(raw); return { ...DEFAULT_INV, ...obj }; } catch (e) { return { ...DEFAULT_INV }; } }
     function saveInv() { localStorage.setItem(KEY, JSON.stringify(inv)); }
     function totalLeft() { return Object.values(inv).reduce((a, b) => a + (b | 0), 0); }
@@ -632,7 +713,128 @@
       for (let t = 1; t <= 5; t++) { const c = inv[t] | 0; if (r < c) return t; r -= c; }
       return 5;
     }
-    function colorFor(t) { return getComputedStyle(document.documentElement).getPropertyValue(`--c${t}`).trim(); }
+
+    function selectCountButton(n) {
+      [btn1, btn2, btn3].forEach((b, i) => {
+        const k = i + 1; const sel = (k === n);
+        b.classList.toggle('selected', sel);
+        b.setAttribute('aria-pressed', String(sel));
+        if (sel) { b.classList.remove('shake'); b.style.transform = 'scale(0.98)'; setTimeout(() => b.style.transform = '', 140); }
+      });
+    }
+    function setControlsLocked(lock) {
+      controlsLocked = lock;
+      [btn1, btn2, btn3].forEach(b => { b.disabled = lock; });
+      const remain = Math.max(0, plannedDraws - doneDraws);
+      startBtn.disabled = lock || (remain <= 0);
+    }
+    function setDraws(n) {
+      setControlsLocked(false);
+      if (totalLeft() <= 0) { alert('在庫がありません'); return; }
+      plannedDraws = n; doneDraws = 0; pendingResults = []; selectedTier = null;
+      selectedBanner.style.display = 'none';
+      startBtn.disabled = false; updateStartLabel();
+      resultsEl.innerHTML = '';
+      actions.style.display = 'none';
+      confirmBtn.disabled = true;
+      digit.textContent = '–';
+      roller.style.background = 'radial-gradient(120% 160% at 20% 10%, #21416f, #18325a)';
+      selectCountButton(n);
+      fitLayout();
+    }
+    function updateStartLabel() {
+      const remain = Math.max(0, plannedDraws - doneDraws);
+      startBtn.textContent = remain > 0 ? `スタート（残り ${remain}）` : 'スタート';
+      startBtn.disabled = controlsLocked || remain <= 0;
+    }
+    async function runOneDraw() {
+      try { await unlockAudio(); } catch (_) { }
+      if (running) return;
+      if (doneDraws >= plannedDraws) return;
+      running = true; startBtn.disabled = true;
+      try {
+        const pick = weightedPick();
+        await animateToResult(pick);
+        pendingResults.push(pick);
+        doneDraws++;
+        addChip(pick);
+        const remain = plannedDraws - doneDraws;
+        if (remain > 0) {
+          [btn1, btn2, btn3].forEach(b => b.disabled = true);
+          updateStartLabel();
+          actions.style.display = 'none';
+          confirmBtn.disabled = true;
+          hint.textContent = '続けてスタートを押してください';
+          startBtn.disabled = false; // allow next draw
+        } else {
+          updateStartLabel();
+          actions.style.display = 'flex';
+          hint.textContent = '表示された結果から1つ選んでください';
+          setControlsLocked(true);
+        }
+      } catch (e) {
+        const banner = document.getElementById('errBanner');
+        banner.textContent = 'エラー: ' + (e && e.message ? e.message : e);
+        banner.style.display = 'block';
+        // graceful fallback: finish this draw immediately
+        const pick = 5;
+        digit.textContent = pick;
+      } finally {
+        running = false;
+        fitLayout();
+      }
+    }
+    function addChip(tier) {
+      const chip = document.createElement('span');
+      chip.className = 'chip'; chip.style.background = colorFor(tier);
+      chip.textContent = `${tier}等`;
+      chip.onclick = () => { selectChip(chip); };
+      resultsEl.appendChild(chip);
+      fitLayout();
+    }
+    function selectChip(chipEl) {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('sel'));
+      chipEl.classList.add('sel');
+      const tier = Number(chipEl.textContent[0]);
+      selectedTier = tier;
+      const left = inv[tier] | 0;
+      const remain = Math.max(0, plannedDraws - doneDraws);
+
+      selectedBadge.style.background = colorFor(tier);
+      selectedBadge.textContent = `${tier}等`;
+      selectedBanner.style.display = 'flex';
+
+      if (remain > 0) {
+        selectedLabel.textContent = '確定候補（まだ抽選中）';
+        hint.textContent = `続けてスタートを押してください（残り ${remain}）`;
+        actions.style.display = 'none';
+        confirmBtn.disabled = true;
+        updateStartLabel();
+      } else {
+        selectedLabel.textContent = '確定候補：';
+        hint.textContent = left > 0 ? `${tier}等 を授与（残り ${left}）` : `${tier}等 は在庫切れ。他を選んでください`;
+        actions.style.display = 'flex';
+        confirmBtn.disabled = left <= 0;
+        setControlsLocked(true);
+      }
+      fitLayout();
+    }
+    function confirmAward() {
+      if (selectedTier == null) { alert('授与する等級を選んでください'); return; }
+      if ((inv[selectedTier] | 0) <= 0) { alert('在庫切れです'); return; }
+      inv[selectedTier]--; saveInv(); renderInv();
+      plannedDraws = 0; doneDraws = 0; pendingResults = []; selectedTier = null;
+      startBtn.disabled = true; confirmBtn.disabled = true;
+      [btn1, btn2, btn3].forEach(b => { b.classList.remove('selected'); b.disabled = false; });
+      resultsEl.innerHTML = '';
+      selectedBanner.style.display = 'none';
+      hint.textContent = '確定しました';
+      setControlsLocked(false);
+      fitLayout();
+    }
+
+    function el(tag, cls, html) { const x = document.createElement(tag); if (cls) x.className = cls; if (html != null) x.innerHTML = html; return x; }
+    function btn(txt, fn) { const b = document.createElement('button'); b.textContent = txt; b.onclick = fn; return b; }
 
     const invEl = document.getElementById('inv');
     function renderInv() {
@@ -656,132 +858,8 @@
         invEl.append(name, qty, minus, plus, set);
       }
     }
-    function el(tag, cls, html) { const x = document.createElement(tag); if (cls) x.className = cls; if (html != null) x.innerHTML = html; return x; }
-    function btn(txt, fn) { const b = document.createElement('button'); b.textContent = txt; b.onclick = fn; return b; }
 
-    const resultsEl = document.getElementById('results');
-    const startBtn = document.getElementById('startBtn');
-    const confirmBtn = document.getElementById('confirmBtn');
-    const actions = document.getElementById('actions');
-    const hint = document.getElementById('hint');
-    const btn1 = document.getElementById('pick1'), btn2 = document.getElementById('pick2'), btn3 = document.getElementById('pick3');
-    const selectedBanner = document.getElementById('selectedBanner');
-    const selectedBadge = document.getElementById('selectedBadge');
-    const selectedLabel = document.getElementById('selectedLabel');
-
-    function selectCountButton(n) {
-      [btn1, btn2, btn3].forEach((b, i) => {
-        const k = i + 1; const sel = (k === n);
-        b.classList.toggle('selected', sel);
-        b.setAttribute('aria-pressed', String(sel));
-        if (sel) { b.classList.remove('shake'); b.style.transform = 'scale(0.98)'; setTimeout(() => b.style.transform = '', 140); }
-      });
-    }
-    function setControlsLocked(lock) {
-      controlsLocked = lock;
-      [btn1, btn2, btn3].forEach(b => { b.disabled = lock; });
-      const remain = Math.max(0, plannedDraws - doneDraws);
-      startBtn.disabled = lock || (remain <= 0);
-    }
-    function setDraws(n) {
-      if (controlsLocked) { nudge([btn1, btn2, btn3]); return; }
-      if (totalLeft() <= 0) { alert('在庫がありません'); return; }
-      plannedDraws = n; doneDraws = 0; pendingResults = []; selectedTier = null;
-      selectedBanner.style.display = 'none';
-      startBtn.disabled = false; updateStartLabel();
-      resultsEl.innerHTML = '';
-      actions.style.display = 'none';
-      confirmBtn.disabled = true;
-      digit.textContent = '–';
-      document.getElementById('roller').style.background = 'radial-gradient(120% 160% at 20% 10%, #21416f, #18325a)';
-      selectCountButton(n);
-      fitLayout();
-    }
-    function updateStartLabel() {
-      const remain = Math.max(0, plannedDraws - doneDraws);
-      startBtn.textContent = remain > 0 ? `スタート（残り ${remain}）` : 'スタート';
-      startBtn.disabled = controlsLocked || remain <= 0;
-    }
-    async function runOneDraw() {
-      try { await unlockAudio(); } catch (_) { }
-      if (running) return;
-      if (doneDraws >= plannedDraws) return;
-      running = true; startBtn.disabled = true;
-      const pick = weightedPick();
-      await animateToResult(pick);
-      pendingResults.push(pick);
-      doneDraws++;
-      addChip(pick);
-      const remain = plannedDraws - doneDraws;
-      if (remain > 0) {
-        [btn1, btn2, btn3].forEach(b => b.disabled = true); // lock preset while in multi-draw
-        updateStartLabel();
-        actions.style.display = 'none';
-        confirmBtn.disabled = true;
-        hint.textContent = '続けてスタートを押してください';
-      } else {
-        updateStartLabel();
-        actions.style.display = 'flex';
-        hint.textContent = '表示された結果から1つ選んでください';
-        // 自動で最後の結果を選択しない（ユーザーが選ぶ想定）
-        setControlsLocked(true); // now fully lock until confirm
-      }
-      running = false;
-      fitLayout();
-    }
-    function addChip(tier) {
-      const chip = document.createElement('span');
-      chip.className = 'chip'; chip.style.background = colorFor(tier);
-      chip.textContent = `${tier}等`;
-      chip.onclick = () => { selectChip(chip); };
-      resultsEl.appendChild(chip);
-      fitLayout();
-    }
-    function selectChip(chipEl) {
-      document.querySelectorAll('.chip').forEach(c => c.classList.remove('sel'));
-      chipEl.classList.add('sel');
-      const tier = Number(chipEl.textContent[0]);
-      selectedTier = tier;
-      const left = inv[tier] | 0;
-
-      const remain = Math.max(0, plannedDraws - doneDraws);
-      selectedBadge.style.background = colorFor(tier);
-      selectedBadge.textContent = `${tier}等`;
-      selectedBanner.style.display = 'flex';
-
-      if (remain > 0) {
-        // まだ抽選が残っている → バナーだけ更新して続行可能
-        selectedLabel.textContent = '確定候補（まだ抽選中）';
-        hint.textContent = `続けてスタートを押してください（残り ${remain}）`;
-        actions.style.display = 'none';
-        confirmBtn.disabled = true;
-        // ここではコントロールはロックしない（Startは押せる）
-        updateStartLabel();
-      } else {
-        // 全て出揃った → 確定できる
-        selectedLabel.textContent = '確定候補：';
-        hint.textContent = left > 0 ? `${tier}等 を授与（残り ${left}）` : `${tier}等 は在庫切れ。他を選んでください`;
-        actions.style.display = 'flex';
-        confirmBtn.disabled = left <= 0;
-        setControlsLocked(true);
-      }
-      fitLayout();
-    }
-    function confirmAward() {
-      if (selectedTier == null) { alert('授与する等級を選んでください'); return; }
-      if ((inv[selectedTier] | 0) <= 0) { alert('在庫切れです'); return; }
-      inv[selectedTier]--; saveInv(); renderInv();
-      plannedDraws = 0; doneDraws = 0; pendingResults = []; selectedTier = null;
-      startBtn.disabled = true; confirmBtn.disabled = true;
-      [btn1, btn2, btn3].forEach(b => { b.classList.remove('selected'); b.disabled = false; });
-      resultsEl.innerHTML = '';
-      selectedBanner.style.display = 'none';
-      hint.textContent = '確定しました';
-      setControlsLocked(false);
-      fitLayout();
-    }
-    function nudge(els) { (Array.isArray(els) ? els : [els]).forEach(e => { e.classList.remove('shake'); void e.offsetWidth; e.classList.add('shake'); }); }
-
+    // Bind
     document.getElementById('pick1').onclick = () => setDraws(1);
     document.getElementById('pick2').onclick = () => setDraws(2);
     document.getElementById('pick3').onclick = () => setDraws(3);

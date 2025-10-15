@@ -363,11 +363,11 @@
       animation: shake .24s linear
     }
 
-    /* ===== Landscape full-screen play area ===== */
+    /* ===== Landscape full-screen: fit confirm within viewport, keep Start button under roller ===== */
     @media (orientation: landscape) {
       .wrap {
         max-width: none;
-        padding: 0;
+        padding: 0
       }
 
       header {
@@ -386,11 +386,11 @@
 
       .playArea {
         min-height: 100svh;
-        /* iPad Safari safe viewport height */
-        padding: clamp(10px, 3vh, 24px);
+        /* full safe viewport */
+        padding: clamp(10px, 2.6vh, 22px);
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        gap: 8px;
       }
 
       .left {
@@ -404,20 +404,40 @@
         background: transparent
       }
 
-      .roller {
-        width: min(92vw, 1100px);
-        aspect-ratio: 5/2;
-      }
-
       .bigBtns {
         width: min(92vw, 1100px);
-        margin: 0 auto 8px
+        margin: 0 auto 6px
       }
 
-      .start {
-        margin-top: 8px
+      .rollerWrap {
+        width: min(92vw, 1100px);
+        margin: 0 auto;
+        gap: 8px
       }
 
+      .roller {
+        width: 100%;
+        max-height: 52svh;
+        aspect-ratio: auto;
+      }
+
+      .digit {
+        font-size: min(18vh, 18vw, 180px);
+      }
+
+      .results {
+        width: min(92vw, 1100px);
+        margin: 0 auto;
+        gap: 8px
+      }
+
+      .actions {
+        width: min(92vw, 1100px);
+        margin: 0 auto;
+        margin-top: auto
+      }
+
+      /* stay inside viewport bottom */
       /* Inventory BELOW requires scroll */
       .inventoryPanel {
         margin-top: 0;
@@ -437,7 +457,6 @@
     </header>
 
     <main class="main">
-      <!-- Full-screen play area in landscape -->
       <section class="panel left playArea">
         <div class="bigBtns">
           <button id="pick1">1回引く</button>
@@ -466,7 +485,6 @@
         </div>
       </section>
 
-      <!-- Inventory section lives BELOW and requires scroll in landscape -->
       <section class="panel right inventoryPanel">
         <h3 style="margin:0 0 6px">在庫状況</h3>
         <div class="invGrid" id="inv"></div>
@@ -476,24 +494,32 @@
   </div>
 
   <script>
-    // === same logic as v5, with new storage key ===
-    const KEY = 'lottery_num_state_v6';
+    // === logic (based on your original), add louder audio ===
+    const KEY = 'lottery_num_state_fixed';
     const DEFAULT_INV = { 1: 5, 2: 18, 3: 35, 4: 82, 5: 160 };
     let inv = loadInv();
     let plannedDraws = 0, doneDraws = 0, pendingResults = [], selectedTier = null;
     let running = false, muted = false, controlsLocked = false;
 
+    // Louder audio with master gain (keeps headroom)
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    let actx = null;
-    function ensureAudio() { if (!actx) actx = new AudioCtx(); }
-    function tone(freq = 340, time = 0.04, type = 'sine', gain = 0.016) {
+    let actx = null, master = null;
+    function ensureAudio() {
+      if (!actx) {
+        actx = new AudioCtx();
+        master = actx.createGain();
+        master.gain.value = 0.9; // cap overall volume
+        master.connect(actx.destination);
+      }
+    }
+    function tone(freq = 340, time = 0.08, type = 'sine', gain = 0.12) {
       if (muted) return; ensureAudio();
       const o = actx.createOscillator(), g = actx.createGain();
       o.type = type; o.frequency.value = freq; g.gain.value = gain;
-      o.connect(g).connect(actx.destination); o.start(); o.stop(actx.currentTime + time);
+      o.connect(g).connect(master); o.start(); o.stop(actx.currentTime + time);
     }
-    function tick() { tone(340, 0.03, 'sine', 0.013); }
-    function thump() { tone(140, 0.1, 'sine', 0.03); }
+    function tick() { tone(360, 0.06, 'sine', 0.10); }
+    function thump() { tone(160, 0.20, 'sine', 0.18); }
     function chime() {
       if (muted) return; ensureAudio();
       const t = actx.currentTime;
@@ -501,10 +527,10 @@
         const o = actx.createOscillator(), g = actx.createGain();
         o.type = 'sine'; o.frequency.value = f;
         g.gain.setValueAtTime(0.0001, t + off);
-        g.gain.linearRampToValueAtTime(0.022, t + off + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + off + 0.32);
-        o.connect(g).connect(actx.destination);
-        o.start(t + off); o.stop(t + off + 0.34);
+        g.gain.linearRampToValueAtTime(0.06, t + off + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + off + 0.45);
+        o.connect(g).connect(master);
+        o.start(t + off); o.stop(t + off + 0.5);
       });
     }
 
@@ -611,7 +637,7 @@
       controlsLocked = lock;
       [btn1, btn2, btn3].forEach(b => { b.disabled = lock; });
       startBtn.disabled = lock || (Math.max(0, plannedDraws - doneDraws) <= 0);
-      confirmBtn.disabled = lock ? confirmBtn.disabled : confirmBtn.disabled;
+      // confirmBtn stays controlled by selection
     }
     function setDraws(n) {
       if (controlsLocked) { nudge([btn1, btn2, btn3]); return; }
@@ -701,7 +727,7 @@
     document.getElementById('mute').onclick = (e) => {
       muted = !muted; e.currentTarget.setAttribute('aria-pressed', String(muted));
       e.currentTarget.textContent = muted ? '🔇 ミュート' : '🔊 サウンド';
-      if (!muted) { try { ensureAudio(); tone(300, 0.04, 'sine', 0.02); } catch (_) { } }
+      if (!muted) { try { ensureAudio(); tone(300, 0.06, 'sine', 0.12); } catch (_) { } }
     };
 
     renderInv();

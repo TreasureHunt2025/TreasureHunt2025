@@ -1,4 +1,4 @@
-// js/qr.js — button-only start, robust delegation for #primaryCta & #startGameBtn
+// js/qr.js — フルページ遷移で起動 / クリアはsessionStorage経由で復帰して記録
 import { db, requireUidOrRedirect } from "./firebase-init.js";
 import {
   collection, doc, getDocs, setDoc, serverTimestamp
@@ -26,94 +26,19 @@ const GAME_URLS = {
 
 const GOAL_REQUIRED = 6; // 6個到達でゴールへ
 
-/** ゲームを“完全フルスクリーン”で起動（×ボタンなし） */
-function openGameOverlay(url, { uid, pointId }) {
-  // 既存のオーバーレイがあれば消す
-  document.querySelector("#minigame-overlay")?.remove();
-
-  // フルスクリーン用ラッパ
-  const ov = document.createElement("div");
-  ov.id = "minigame-overlay";
-  ov.style.cssText = `
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: #000;
-  `;
-
-  // ゲーム本体の iframe（画面いっぱい）
-  const iframe = document.createElement("iframe");
-  iframe.src = url;
-  iframe.style.cssText = `
-    position: absolute;
-    inset: 0;
-    width: 100vw;
-    height: 100dvh;        /* 動的ビューポートでスマホのアドレスバー分も埋める */
-    border: 0;
-    background: #000;
-  `;
-  iframe.setAttribute("allowfullscreen", "");     // iOS/Android での全画面許可
-  iframe.allow = "fullscreen; autoplay *; gamepad *";
-
-  // クリア通知を受けて保存 → 6個到達でゴール → 後片付け
-  async function onMsg(ev) {
-    const data = ev?.data;
-    if (!data || data.type !== "minigame:clear") return;
-    try {
-      await recordPointCleared({ uid, pointId, detail: data.detail || {} });
-    } finally {
-      cleanup();
-    }
-  }
-
-  function cleanup() {
-    window.removeEventListener("message", onMsg);
-    // フルスクリーン解除（可能なら）
-    const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
-    if (document.fullscreenElement && exit) {
-      try { exit.call(document); } catch { }
-    }
-    // スクロールを戻す & DOM 片付け
-    document.body.style.overflow = prevOverflow;
-    ov.remove();
-  }
-
-  // DOM 追加 & 監視開始
-  window.addEventListener("message", onMsg);
-  ov.append(iframe);
-  document.body.append(ov);
-
-  // 背面のスクロールを止める
-  const prevOverflow = document.body.style.overflow;
-  document.body.style.overflow = "hidden";
-
-  // 可能ならフルスクリーン API を要求（失敗しても見た目は全画面表示）
-  const reqFS = ov.requestFullscreen || ov.webkitRequestFullscreen || ov.msRequestFullscreen;
-  if (reqFS) {
-    try { reqFS.call(ov); } catch { }
-  }
-}
-
-
 /** クリア確定時の保存→6個達成ならゴールへ */
 async function recordPointCleared({ uid, pointId }) {
-  try {
-    await setDoc(
-      doc(db, "teams", uid, "points", pointId),
-      { foundAt: serverTimestamp() },
-      { merge: true }
-    );
-    cacheFound(pointId);
-
-    const snap = await getDocs(collection(db, "teams", uid, "points"));
-    if (snap.size >= GOAL_REQUIRED) {
-      setTimeout(() => {
-        location.replace(`goal.html?uid=${encodeURIComponent(uid)}`);
-      }, 500);
-    }
-  } catch (e) {
-    console.error("[qr] recordPointCleared failed:", e);
-    alert("通信エラーが発生しました。接続状況をご確認の上、もう一度お試しください。");
+  await setDoc(
+    doc(db, "teams", uid, "points", pointId),
+    { foundAt: serverTimestamp() },
+    { merge: true }
+  );
+  cacheFound(pointId);
+  const snap = await getDocs(collection(db, "teams", uid, "points"));
+  if (snap.size >= GOAL_REQUIRED) {
+    setTimeout(() => {
+      location.replace(`goal.html?uid=${encodeURIComponent(uid)}`);
+    }, 400);
   }
 }
 
@@ -129,44 +54,64 @@ function cacheFound(pointId) {
   } catch { }
 }
 
-/** ---- 起動ボタンを“確実に”拾う：準備→イベント委譲 ---- */
-(async function boot() {
-  // 1) 必要な情報を先に確定
+/** （重要）ゲームから“フルページで戻った”ときの結果を処理 */
+(async function applyReturnIfAny() {
+  // まずUIDを確定（書き込みは要認証）
   const uid = await requireUidOrRedirect();
-  window.uid = uid;
 
+  // ゲーム側が sessionStorage に置いた結果を拾う
+  const key = "minigame_clear";
+  const raw = sessionStorage.getItem(key);
+  if (!raw) return;
+  sessionStorage.removeItem(key);
+
+  try {
+    const data = JSON.parse(raw);
+    // 現在のQRページのpointIdと一致しているときだけ処理
+    const params = new URLSearchParams(location.search);
+    const nowPoint = normalizeToPointId({ key: params.get("key"), token: params.get("token") });
+    if (!data || !data.pointId || data.pointId !== nowPoint) return;
+
+    await recordPointCleared({ uid, pointId: data.pointId });
+  } catch (e) {
+    console.warn("[qr] failed to apply return result:", e);
+  }
+})();
+
+/** 起動ボタン（#startGameBtn など）をセットアップ：フルページに遷移 */
+(async function setupStartButtons() {
+  const btns = Array.from(
+    document.querySelectorAll('#primaryCta, #startGameBtn, [data-action="startGame"]')
+  );
+  if (btns.length === 0) return;
+
+  const uid = await requireUidOrRedirect();
   const params = new URLSearchParams(location.search);
   const pointId = normalizeToPointId({ key: params.get("key"), token: params.get("token") });
 
   const candidateFn = (typeof urlForPoint === "function") ? urlForPoint(pointId) : null;
   const candidateMap = GAME_URLS?.[pointId];
-  const gameUrl = candidateFn || candidateMap || GAME_URLS?.default || "";
-
-  // 2) 既存ボタンがあれば状態を反映（重なりや再描画に関係なく最後にイベント委譲で拾う）
-  const btns = document.querySelectorAll('#primaryCta, #startGameBtn, [data-action="startGame"]');
-  for (const btn of btns) {
-    if (!pointId || !gameUrl) {
-      btn.setAttribute("disabled", "true");
-      btn.textContent = !pointId ? "開始できません（QR不明）" : "開始できません（URL未設定）";
-    } else {
-      btn.removeAttribute("disabled");
-      if (!btn.textContent.trim()) btn.textContent = "ミニゲームをプレイ";
+  const baseUrl = candidateFn || candidateMap || GAME_URLS?.default || "";
+  if (!pointId || !baseUrl) {
+    for (const b of btns) {
+      b.disabled = true;
+      b.textContent = !pointId ? "開始できません（QR不明）" : "開始できません（URL未設定）";
     }
+    return;
   }
 
-  if (!pointId || !gameUrl) return; // ここで終了
+  // フルページ遷移先URLを組む（uid/point/return を渡す）
+  const full = new URL(baseUrl, location.href);
+  full.searchParams.set("uid", uid);
+  full.searchParams.set("point", pointId);
+  full.searchParams.set("return", location.href);
 
-  // 3) ドキュメント単位でクリックを拾う（重なり・差し替え・複製にも強い）
-  const START_SEL = '#primaryCta, #startGameBtn, [data-action="startGame"]';
-  const handleStart = (e) => {
-    const t = e.target.closest?.(START_SEL);
-    if (!t) return;
-    e.preventDefault();
-    if (t.hasAttribute("disabled")) return;
-    openGameOverlay(gameUrl, { uid, pointId });
-  };
-
-  // click / pointerup の両方で拾う（iOS対策として pointerup も）
-  document.addEventListener("click", handleStart);
-  document.addEventListener("pointerup", handleStart);
+  for (const b of btns) {
+    b.removeAttribute("disabled");
+    if (!b.textContent.trim()) b.textContent = "ミニゲームをプレイ";
+    b.addEventListener("click", (e) => {
+      e.preventDefault();
+      location.href = full.href; // ← ここで“ページ遷移”してフル画面で開始
+    });
+  }
 })();

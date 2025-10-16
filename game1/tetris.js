@@ -1,15 +1,14 @@
+document.addEventListener("DOMContentLoaded", () => {
 // ====== スマホ特化・簡潔版 ======
 const COLS = 10;
 const ROWS = 20;
 let BLOCK = 30;
 const GHOST_ALPHA = 0.22;
 
-const PARAMS = new URLSearchParams(location.search);
-const TARGET_LINES = Number(PARAMS.get("target") || 7); //ここでライン設定(変更する場合はHTMLも対応)
-const DROP_MS = Number(PARAMS.get("speed") || 500);
-const SOFT_MS = Number(PARAMS.get("soft") || 30);
-let EXTRA_BOTTOM_PX = Number(PARAMS.get("bottom") || 90);
-
+const TARGET_LINES = 7; // クリアライン（固定）
+const DROP_MS = 550;     // 自動落下ms（固定）
+const SOFT_MS = 30;      // ソフトドロップms（未使用でもエラー回避用）
+let EXTRA_BOTTOM_PX = 90; // 画面下の余白px
 // ==== Sound ====
 const SFX = (() => {
   const clamp = v => Math.max(0, Math.min(1, Number(v) || 0));
@@ -140,7 +139,7 @@ class Tetris {
     this.next = this.randPiece();
 
     this.lines = 0;
-    this.dropMs = 550; // 自動で1段落ちるまでのms
+    this.dropMs = DROP_MS; // 自動で1段落ちるまでのms
     this.timer = 0;
     this.live = true;
     this.prev = 0;
@@ -359,105 +358,10 @@ function showGameOverSplash() {
 // ====== 親（qr.js）への結果送信 ======
 const LINES_TO_CLEAR = 7;
 function notifyParent(cleared, score, lines) {
-  const detail = { gameId: "game1", score, time: null, cleared, lines };
-  try { window.parent?.postMessage({ type: 'minigame:clear', detail: { gameId: 'game1', cleared: true, lines: totalLines, score: score ?? null } }, '*'); } catch { }
-  try { window.dispatchEvent(new CustomEvent("minigame:clear", { detail })); } catch { }
+  const detail = { gameId: 'game1', score, time: null, cleared, lines };
+  try { window.parent?.postMessage({ type: 'minigame:clear', detail }, '*'); } catch {}
+  try { window.dispatchEvent(new CustomEvent('minigame:clear', { detail })); } catch {}
 }
-
-// ====== タッチ操作 ======
-function setupTouchControls(game) {
-  const canvas = document.getElementById("board");
-  const surface = canvas || document.body;
-  try { surface.style.touchAction = "none"; } catch { }
-
-  let startX = 0, startY = 0, startT = 0, appliedX = 0;
-  let movedAny = false, longPressTimer = null, softDropTimer = null;
-
-  const unit = () => {
-    const u = (typeof BLOCK === "number" && BLOCK > 0) ? Math.floor(BLOCK * 0.6) : 24;
-    return Math.max(14, Math.min(48, u));
-  };
-  const pt = (e) => {
-    const t = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]) || e;
-    return { x: t.clientX, y: t.clientY };
-  };
-  const clearTimers = () => {
-    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-    if (softDropTimer) { clearInterval(softDropTimer); softDropTimer = null; }
-  };
-  const startSoftDrop = () => {
-    if (!game || !game.live) return;
-    clearInterval(softDropTimer);
-    softDropTimer = setInterval(() => {
-      if (!game || !game.live || !game.curr) return clearTimers();
-      const beforeY = game.curr.y;
-      game.softDrop();
-      if (typeof game.draw === "function") game.draw();
-      if (game.curr.y === beforeY) clearTimers();
-    }, 45); // 落下速度（30〜80msで調整可）
-  };
-
-  function onStart(e) {
-    if (!game || !game.live) return;
-    movedAny = false;
-    const p = pt(e);
-    startX = appliedX = p.x; startY = p.y; startT = Date.now();
-    clearTimers();
-    longPressTimer = setTimeout(startSoftDrop, 300); // ← 長押し判定
-    e.preventDefault();
-  }
-
-  function onMove(e) {
-    if (!game || !game.live) return;
-    const p = pt(e);
-    const dx = p.x - appliedX;
-    const u = unit();
-
-    if (Math.abs(p.x - startX) > 6 || Math.abs(p.y - startY) > 6) movedAny = true;
-
-    if (Math.abs(dx) >= u) {
-      const steps = (dx > 0) ? Math.floor(dx / u) : Math.ceil(dx / u);
-      const dir = steps > 0 ? 1 : -1;
-      for (let i = 0; i < Math.abs(steps); i++) { game.curr?.move(dir, 0, game.board); }
-      appliedX += steps * u;
-      if (typeof game.draw === "function") game.draw();
-    }
-
-    if (movedAny && longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; } // 誤爆防止
-    e.preventDefault();
-  }
-  function onEnd(e) {
-    if (!game) return;
-    const p = pt(e);
-    const dt = Date.now() - startT;
-    const moved = Math.hypot(p.x - startX, p.y - startY);
-
-    if (softDropTimer) { clearInterval(softDropTimer); softDropTimer = null; } // 長押し停止
-
-    // タップ（短時間＆移動ほぼなし）は回転
-    if (dt <= 250 && moved < 12 && !movedAny) {
-      if (game.live && game.curr) game.curr.rotate(game.board);
-    }
-
-    clearTimers();
-    e.preventDefault();
-  }
-  surface.addEventListener("touchstart", onStart, { passive: false });
-  surface.addEventListener("touchmove", onMove, { passive: false });
-  surface.addEventListener("touchend", onEnd, { passive: false });
-  surface.addEventListener("touchcancel", (e) => { clearTimers(); e.preventDefault(); }, { passive: false });
-
-  surface.addEventListener("mousedown", onStart);
-  surface.addEventListener("mousemove", onMove);
-  surface.addEventListener("mouseup", onEnd);
-}
-
-// ====== 起動 ======
-window.addEventListener("load", () => {
-  // ボタンUIは使わないので非表示にする（CSS変更なしで対応）
-  ["#touchControls", "#btnLeft", "#btnRight", "#btnDrop", "#btnRotate"].forEach(sel => {
-    document.querySelectorAll(sel).forEach(el => { el.style.display = "none"; el.style.visibility = "hidden"; });
-  });
 
   updateGoalText();
   fitCanvasToViewport();

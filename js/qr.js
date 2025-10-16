@@ -117,12 +117,12 @@ function cacheFound(id) {
 
 /** ここで「どのQRでどのゲームを起動するか」を定義 */
 const GAME_URLS = {
-  qr1: "./game1/tetris.html?target=7",
-  qr2: "./game2/suika.html?target=7",
-  qr3: "./game3/AB.html?target=7",
-  qr4: "./game4/roulette.html?target=7",
-  qr5: "./game5/memory.html?target=7",
-  qr6: "./game6/puzzle.html?target=7",
+  qr1: "./game1/tetris.html",
+  qr2: "./game2/suika.html",
+  qr3: "./game3/AB.html",
+  qr4: "./game4/roulette.html",
+  qr5: "./game5/memory.html",
+  qr6: "./game6/puzzle.html",
 };
 
 /** メインフロー */
@@ -239,11 +239,11 @@ function playMinigameInOverlay(url) {
 (function setupStartButton(){
   const btn = document.getElementById('startGameBtn');
   if (!btn) return;
-  const uid = (new URL(location.href)).searchParams.get('uid') || (sessionStorage.getItem('uid') || '');
-  const pointId = (new URL(location.href)).searchParams.get('key') || (new URL(location.href)).searchParams.get('point');
-  const gameUrl = typeof urlForPoint === 'function' ? urlForPoint(pointId) : (GAME_URLS?.[pointId] || '');
-  if (!uid || !pointId || !gameUrl) { btn.disabled = true; btn.textContent = '開始できません'; return; }
-  btn.addEventListener('click', () => {
-    openGameOverlay(gameUrl, { uid, pointId });
-  });
+  const params = new URLSearchParams(location.search);
+  const u = (window.uid) || '';
+  const pointId = normalizeToPointId({ key: params.get('key'), token: params.get('token') });
+  const gameUrl = (typeof urlForPoint === 'function' ? urlForPoint(pointId) : (GAME_URLS?.[pointId])) || '';
+  if (!u || !pointId || !gameUrl) { btn.disabled = true; btn.textContent = '開始できません'; return; }
+  btn.disabled = false; btn.textContent = 'ミニゲームをプレイ';
+  btn.addEventListener('click', () => openGameOverlay(gameUrl, { uid: u, pointId }));
 })();

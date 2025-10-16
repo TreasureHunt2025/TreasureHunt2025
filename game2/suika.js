@@ -188,7 +188,8 @@ class BubbeGame {
     if (this.score >= TARGET_SCORE) {
       Runner.stop(this.runner);
       this.gameover = true;
-      this.showClearMessage();
+      \1
+      try { window.parent && window.parent.postMessage({ type:'minigame:clear', detail:{ gameId:'game2', cleared:true, score:this.score } }, '*'); } catch { }
     }
   }
 

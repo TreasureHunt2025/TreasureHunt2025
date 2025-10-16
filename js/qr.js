@@ -1,4 +1,4 @@
-// js/qr.js — button-only start, robust fallback, goal after 6 points
+// js/qr.js — button-only start, supports #primaryCta & #startGameBtn, goal after 6 points
 import { db, requireUidOrRedirect } from "./firebase-init.js";
 import {
   collection, doc, getDocs, setDoc, serverTimestamp
@@ -28,7 +28,6 @@ const GOAL_REQUIRED = 6; // 6個到達でゴールへ
 
 /** ゲームをオーバーレイで起動（postMessageで結果受け取り） */
 function openGameOverlay(url, { uid, pointId }) {
-  // 既存があれば消す
   document.querySelector("#minigame-overlay")?.remove();
 
   const ov = document.createElement("div");
@@ -87,6 +86,7 @@ async function recordPointCleared({ uid, pointId, detail }) {
       { foundAt: serverTimestamp() },
       { merge: true }
     );
+
     cacheFound(pointId); // 地図側UI用のローカルキャッシュ
 
     const snap = await getDocs(collection(db, "teams", uid, "points"));
@@ -115,31 +115,38 @@ function cacheFound(pointId) {
   } catch { }
 }
 
-/** 起動ボタン（#startGameBtn）をセットアップ：必ず認証後に判定 */
-(async function setupStartButton() {
-  const btn = document.getElementById("startGameBtn");
-  if (!btn) return;
+/** 起動ボタン（#primaryCta / #startGameBtn / data-action="startGame"）をセットアップ：必ず認証後に判定 */
+(async function setupStartButtons() {
+  // どれでも反応するように全て拾う
+  const btns = Array.from(
+    document.querySelectorAll('#primaryCta, #startGameBtn, [data-action="startGame"]')
+  );
+  if (btns.length === 0) return;
 
-  // 1) UIDを確実に取得（未ログインを防ぎ、判定タイミングを合わせる）
-  const userUid = await requireUidOrRedirect();
-  window.uid = userUid;
+  // 1) UIDを確実に取得（未ログインのまま無効化されるのを防ぐ）
+  const uid = await requireUidOrRedirect();
+  window.uid = uid;
 
   // 2) QRキーを正規化
   const params = new URLSearchParams(location.search);
   const pointId = normalizeToPointId({ key: params.get("key"), token: params.get("token") });
 
-  // 3) URL決定：urlForPoint() → GAME_URLS[pointId] → default の順にフォールバック
+  // 3) URL決定：urlForPoint() → GAME_URLS[pointId] → default の順でフォールバック
   const candidateFn = (typeof urlForPoint === "function") ? urlForPoint(pointId) : null;
   const candidateMap = GAME_URLS?.[pointId];
   const gameUrl = candidateFn || candidateMap || GAME_URLS?.default || "";
 
-  if (!pointId || !gameUrl) {
-    btn.disabled = true;
-    btn.textContent = !pointId ? "開始できません（QR不明）" : "開始できません（URL未設定）";
-    return;
+  // 4) 各ボタンに同じ挙動を付与
+  for (const btn of btns) {
+    if (!pointId || !gameUrl) {
+      btn.disabled = true;
+      btn.textContent = !pointId ? "開始できません（QR不明）" : "開始できません（URL未設定）";
+      continue;
+    }
+    // a/Buttonどちらでも安全に
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      openGameOverlay(gameUrl, { uid, pointId });
+    });
   }
-
-  btn.disabled = false;
-  btn.textContent = "ミニゲームをプレイ";
-  btn.addEventListener("click", () => openGameOverlay(gameUrl, { uid: userUid, pointId }));
 })();

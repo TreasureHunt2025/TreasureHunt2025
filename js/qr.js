@@ -25,7 +25,7 @@ function applyPageMode({ returned }) {
 
   if (returned) {
     // ★ ゲームをクリアして戻ってきたとき
-    if (title) title.textContent = 'クリアおめでとう！次のお宝を探そう！';
+    if (title) title.textContent = 'クリアおめでとう！<br>次のお宝を探そう！';
     if (start) start.style.display = 'none';
     if (back)  back.style.display  = 'inline-block';
   } else {

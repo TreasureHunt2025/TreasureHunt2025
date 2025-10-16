@@ -118,12 +118,11 @@ function cacheFound(id) {
 /** ここで「どのQRでどのゲームを起動するか」を定義 */
 const GAME_URLS = {
   qr1: "./game1/tetris.html?target=7",
-  qr2: "./game1/tetris.html?target=7",
-  qr3: "./game1/tetris.html?target=7",
-  qr4: "./game1/tetris.html?target=7",
-  qr5: "./game1/tetris.html?target=7",
-  qr6: "./game1/tetris.html?target=7",
-  default: "./game1/tetris.html?target=7"
+  qr2: "./game2/suika.html?target=7",
+  qr3: "./game3/AB.html?target=7",
+  qr4: "./game4/roulette.html?target=7",
+  qr5: "./game5/memory.html?target=7",
+  qr6: "./game6/puzzle.html?target=7",
 };
 
 /** メインフロー */

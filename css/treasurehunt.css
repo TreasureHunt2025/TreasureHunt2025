@@ -1299,3 +1299,27 @@ body.tutorial-page #slides canvas {
   height: auto !important;
   display: block;
 }
+
+/* QRページ：中央に大きい黄色ボタン */
+.qr-cta {
+  display: flex;
+  justify-content: center;
+  margin: clamp(16px, 5vh, 48px) 0 0;
+  /* カードの下に余白 */
+}
+
+.btn-xl {
+  font-size: clamp(18px, 2.6vw, 22px);
+  padding: clamp(14px, 2.8vh, 18px) 22px;
+  min-height: 56px;
+  border-width: 2px;
+  box-shadow: 0 10px 26px rgba(197, 155, 30, .25);
+  /* ほんのり立体感 */
+}
+
+/* 無効表示を分かりやすく */
+#startGameBtn[disabled] {
+  filter: grayscale(.15);
+  opacity: .6;
+  cursor: not-allowed;
+}

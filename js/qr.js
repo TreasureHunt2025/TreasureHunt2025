@@ -128,7 +128,7 @@ const GAME_URLS = {
 /** メインフロー */
 let uid;
 (async () => {
-  uid = await requireUidOrRedirect();
+  window.uid = uid = await requireUidOrRedirect();
 
   const params = new URLSearchParams(location.search);
   const key = params.get("key");
@@ -236,14 +236,21 @@ function playMinigameInOverlay(url) {
 
 
 // 起動ボタンでゲームを開始
-(function setupStartButton(){
+(async function setupStartButton(){
   const btn = document.getElementById('startGameBtn');
   if (!btn) return;
   const params = new URLSearchParams(location.search);
-  const u = (window.uid) || '';
+
+  // 必ずUIDを取得してから判定（早すぎる実行で未設定→「開始できません」を防止）
+  const u = (window.uid) || await requireUidOrRedirect();
+  window.uid = u;
+
   const pointId = normalizeToPointId({ key: params.get('key'), token: params.get('token') });
   const gameUrl = (typeof urlForPoint === 'function' ? urlForPoint(pointId) : (GAME_URLS?.[pointId])) || '';
-  if (!u || !pointId || !gameUrl) { btn.disabled = true; btn.textContent = '開始できません'; return; }
-  btn.disabled = false; btn.textContent = 'ミニゲームをプレイ';
+
+  if (!pointId || !gameUrl) { btn.disabled = true; btn.textContent = '開始できません'; return; }
+
+  btn.disabled = false;
+  btn.textContent = 'ミニゲームをプレイ';
   btn.addEventListener('click', () => openGameOverlay(gameUrl, { uid: u, pointId }));
 })();

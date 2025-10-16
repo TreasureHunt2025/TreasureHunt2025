@@ -18,6 +18,24 @@ const GAME_URLS = {
   default: "./game1/tetris.html",
 };
 
+function applyPageMode({ returned }) {
+  const title = document.querySelector('#qrTitle');
+  const start = document.querySelector('#startGameBtn');
+  const back  = document.querySelector('#backToMapBtn');
+
+  if (returned) {
+    // ★ ゲームをクリアして戻ってきたとき
+    if (title) title.textContent = 'クリアおめでとう！次のお宝を探そう！';
+    if (start) start.style.display = 'none';
+    if (back)  back.style.display  = 'inline-block';
+  } else {
+    // ★ QR読み取り直後（未プレイ）
+    if (title) title.textContent = 'QRが読み取られました!ミニゲームをクリアしてお宝をゲットしよう！';
+    if (start) start.style.display = 'inline-block';
+    if (back)  back.style.display  = 'none';
+  }
+}
+
 // === ユーティリティ ================================================
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
@@ -173,14 +191,18 @@ function setupFinishButton() {
 }
 
 // === 初期化 ========================================================
-document.addEventListener("DOMContentLoaded", async () => {
-  // 画面のポイント表示（要素があれば）
+document.addEventListener("DOMContentLoaded", async () => {;
+
+
   const pointId = normalizeToPointId({ key: getParam("key"), token: getParam("token") });
   const pointLabel = $("#pointId");
   if (pointLabel && pointId) pointLabel.textContent = pointId;
 
   // ゲームから戻ってきたクリア結果を適用
   await applyReturnIfAny();
+
+  const ret = await applyReturnIfAny();
+  applyPageMode({ returned: !!ret?.applied })
 
   // UI更新
   renderProgressUI();

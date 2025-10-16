@@ -5,6 +5,28 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 // ---- ゲーム開始（ボタン押下時に起動）＆ クリア後の戻り ----
+
+// ---- クリア確定時の保存＆遷移（ボタン起動用） ----
+async function recordPointCleared({ uid, pointId, detail }) {
+  try {
+    await setDoc(
+      doc(db, "teams", uid, "points", pointId),
+      { foundAt: serverTimestamp() },
+      { merge: true }
+    );
+    cacheFound(pointId);
+    const qs = await getDocs(collection(db, "teams", uid, "points"));
+    const foundCount = qs.size;
+    if (foundCount >= 6) {
+      setTimeout(() => {
+        location.replace(`goal.html?uid=${encodeURIComponent(uid)}`);
+      }, 500);
+    }
+  } catch (e) {
+    console.error("[qr] recordPointCleared failed:", e);
+    alert("通信エラーが発生しました。接続状況をご確認の上、もう一度お試しください。");
+  }
+}
 function openGameOverlay(url, { uid, pointId }) {
   const overlay = document.createElement('div');
   overlay.className = 'overlay';
@@ -96,9 +118,12 @@ function cacheFound(id) {
 /** ここで「どのQRでどのゲームを起動するか」を定義 */
 const GAME_URLS = {
   qr1: "./game1/tetris.html?target=7",
-  // 将来:
-  // qr2: "./game2/runner.html?goal=30",
-  // qr3: "./game3/puzzle.html?moves=20",
+  qr2: "./game1/tetris.html?target=7",
+  qr3: "./game1/tetris.html?target=7",
+  qr4: "./game1/tetris.html?target=7",
+  qr5: "./game1/tetris.html?target=7",
+  qr6: "./game1/tetris.html?target=7",
+  default: "./game1/tetris.html?target=7"
 };
 
 /** メインフロー */
@@ -117,7 +142,11 @@ let uid;
     return;
   }
 
-  try {
+  
+  // ボタン起動モード：ここで処理を終了（自動起動しない）
+  return;
+
+try {
     // --- 1) ゲームが紐づいていれば起動（クリア時のみ先へ進む） ---
     const gameUrl = GAME_URLS[pointId];
     if (gameUrl) {

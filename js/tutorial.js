@@ -1,6 +1,6 @@
 // js/tutorial.js
 import { db, requireUidOrRedirect } from "./firebase-init.js";
-import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 /* ===== PDF.js 読み込み（CJK対応） ===== */
 import * as pdfjs from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/build/pdf.min.mjs";

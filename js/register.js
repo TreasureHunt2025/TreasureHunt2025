@@ -1,5 +1,5 @@
 import { db, ensureAuthed } from "./firebase-init.js";
-import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 /* ---------- DOM ---------- */
 const form = document.getElementById("regForm") || document.getElementById("registerForm");

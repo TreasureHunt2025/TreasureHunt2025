@@ -2,7 +2,7 @@ import { db, requireUidOrRedirect } from "./firebase-init.js";
 import {
   doc, setDoc, serverTimestamp,
   getDocs, collection
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 // ---- ゲーム開始（ボタン押下時に起動）＆ クリア後の戻り ----
 function openGameOverlay(url, { uid, pointId }) {

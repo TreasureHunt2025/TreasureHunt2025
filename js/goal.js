@@ -2,7 +2,7 @@ import { db, requireUidOrRedirect } from "./firebase-init.js";
 import {
   doc, getDoc, updateDoc, serverTimestamp,
   collection, getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 /* ---------- DOM ---------- */
 const timeEl = document.getElementById("timeDisplay");

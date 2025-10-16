@@ -1,6 +1,6 @@
 // js/map.js
 import { db, requireUidOrRedirect } from "./firebase-init.js";
-import { doc, getDocs, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { doc, getDocs, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 /* ---------- DOM ---------- */
 const elMap = document.getElementById("map");

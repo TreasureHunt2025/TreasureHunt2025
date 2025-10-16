@@ -2,7 +2,7 @@
 import { db, ensureAuthed } from "./firebase-init.js";
 import {
   doc, getDoc, getDocs, collection, updateDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 const STAFF_PASSWORD = "tokorozawa";
 const VERIFY_KEY = "verify_ok";

@@ -1,40 +1,33 @@
-// firebase-init.js (improved)
+// js/firebase-init.js (prod, unified 10.13.2)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
 import {
-  getFirestore,
-  doc,
-  getDoc
+  getFirestore, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 import {
-  getAuth,
-  onAuthStateChanged,
-  signInAnonymously
+  getAuth, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import {
-  getAnalytics,
-  isSupported
-} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-analytics.js";
 
-// Replace with actual config
+// ==== Firebase config (本番) ====
+// * measurementId は未使用のため省略（Analytics無効）
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_DOMAIN",
+  apiKey: "AIzaSyB-4kv_D6Nza7nvAAcTZC7R97atLXhUHMs",
+  authDomain: "treasurehunt2025-6e836.firebaseapp.com",
   projectId: "treasurehunt2025-6e836",
-  storageBucket: "YOUR_BUCKET",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
+  storageBucket: "treasurehunt2025-6e836.firebasestorage.app",
+  messagingSenderId: "615988195129",
+  appId: "1:615988195129:web:767d2d934cbebc0521c2e8"
 };
 
+// ---- init ----
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-isSupported().then(() => getAnalytics(app)).catch(() => {});
 
+// 匿名認証を保証
 async function ensureAuthed() {
   if (auth.currentUser) return auth.currentUser;
   return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject("Timeout"), 12000);
+    const timeout = setTimeout(() => reject(new Error("Auth timeout")), 12000);
     const unsub = onAuthStateChanged(auth, async (user) => {
       clearTimeout(timeout);
       unsub();
@@ -49,6 +42,7 @@ async function ensureAuthed() {
   });
 }
 
+// UID必須 & チーム登録必須。満たさなければリダイレクト
 async function requireUidOrRedirect() {
   const user = await ensureAuthed();
   const uid = user?.uid;

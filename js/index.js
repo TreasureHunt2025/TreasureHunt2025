@@ -2,7 +2,7 @@ import { db, ensureAuthed } from "./firebase-init.js";
 import {
   collection, query, where, orderBy, limit, onSnapshot, getDocs,
   doc, getDoc
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 /* ---------- ナビ開閉（共通） ---------- */
 const navToggle = document.getElementById("nav-toggle");

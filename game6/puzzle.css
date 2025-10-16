@@ -1,0 +1,217 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+html {
+  height: -webkit-fill-available;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  min-height: -webkit-fill-available;
+  background: #121212;
+  color: #e0e0e0;
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overscroll-behavior-y: contain;
+  padding-bottom: calc(max(0px, env(safe-area-inset-bottom)) + var(--extra-bottom, 40px));
+}
+
+/* 上バー（game1調） */
+#goalbar {
+  text-align: center;
+  padding: 10px env(safe-area-inset-right) 10px env(safe-area-inset-left);
+  background: #1a1a1a;
+  border-bottom: 1px solid #2a2a2a;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+/* 盤ラッパ */
+#stageWrap {
+  display: grid;
+  place-items: center;
+  padding: 10px 12px max(10px, calc(env(safe-area-inset-bottom)));
+}
+
+/* 盤面（CSS Grid） */
+#board {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  background: #0e0e0e;
+  border: 3px solid #333;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .4);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  padding: 6px;
+}
+
+/* タイル */
+.tile {
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: clamp(18px, 6.2vw, 32px);
+  color: #fff;
+  background: #2a2a2a;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .35);
+  transition: transform .14s ease, box-shadow .14s ease;
+  will-change: transform;
+  overflow: hidden;
+}
+
+/* 画像タイル用 */
+.tile.has-img {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* 空白 */
+.tile.blank {
+  background: #111;
+  border: 1px dashed rgba(255, 255, 255, .08);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .02);
+}
+
+/* 盤サイズに応じたタップ余白 */
+@media (max-height: 620px) {
+  #goalbar {
+    padding: 6px 8px;
+    font-size: 14px;
+  }
+}
+
+/* スプラッシュ/カード（game1踏襲） */
+#splash,
+#clearSplash,
+#pauseSplash {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, .78);
+  z-index: 3000;
+  padding: 24px;
+}
+
+#clearSplash {
+  z-index: 3500;
+  background: rgba(0, 0, 0, .8);
+}
+
+#pauseSplash {
+  z-index: 3400;
+  background: rgba(0, 0, 0, .82);
+}
+
+.splash-card,
+.win-card,
+.over-card {
+  width: min(92vw, 520px);
+  background: #111;
+  color: #fff;
+  text-align: center;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, .6);
+}
+
+.win-card {
+  background: #101010;
+}
+
+.over-card {
+  background: #121212;
+  border: 1px solid #272727;
+}
+
+h1 {
+  font-size: clamp(22px, 4.6vw, 34px);
+  font-weight: 800;
+  letter-spacing: .18em;
+}
+
+.win-title,
+.over-title {
+  font-weight: 800;
+}
+
+.splash-cond {
+  margin: 6px 0 12px;
+  opacity: .95;
+}
+
+.splash-sub {
+  opacity: .8;
+  margin-bottom: 12px;
+}
+
+.btn-primary {
+  padding: .9rem 1.6rem;
+  border: none;
+  border-radius: 999px;
+  background: #16a34a;
+  color: #fff;
+  font-weight: 800;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.touch-help {
+  margin: 10px auto 14px;
+  padding: 10px 12px;
+  max-width: 420px;
+  background: rgba(0, 0, 0, .5);
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 12px;
+  font-size: clamp(12px, 3.5vw, 15px);
+  line-height: 1.55;
+}
+
+.touch-help ul {
+  list-style: none;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 10px;
+  align-items: center;
+  justify-items: start;
+}
+
+.touch-help li {
+  display: contents;
+}
+
+.touch-help .op {
+  font-weight: 800;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.touch-help .desc {
+  opacity: .9;
+}
+
+.touch-help b {
+  font-weight: 800;
+}

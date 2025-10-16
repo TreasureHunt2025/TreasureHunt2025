@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Slide Puzzle | 宝探し企画</title>
+  <link rel="stylesheet" href="../css/reset.css" />
+  <link rel="stylesheet" href="../css/treasurehunt.css" />
+  <link rel="stylesheet" href="puzzle.css" />
+</head>
+
+<body>
+  <div id="goalbar" aria-live="polite">
+    1〜15を順に並べたらクリア / <span id="hudMoves">0</span>手 / <span id="hudTime">00:00</span>
+  </div>
+
+  <!-- 盤面（グリッド） -->
+  <main id="stageWrap">
+    <div id="board" aria-label="Slide puzzle board" role="application"></div>
+    <div class="touch-help" role="note" aria-live="polite">
+      <ul class="ops">
+        <li><span class="op">スワイプ</span><span class="desc">タイルを空白へスライド</span></li>
+        <li><span class="op">タップ</span><span class="desc">隣接していれば移動</span></li>
+        <li><span class="op">長押し</span><span class="desc">一時停止/再開</span></li>
+      </ul>
+    </div>
+  </main>
+
+  <!-- 開始スプラッシュ -->
+  <div id="splash" role="dialog" aria-modal="true">
+    <div class="splash-card">
+      <h1>SLIDE PUZZLE</h1>
+      <p class="splash-cond">勝利条件：<strong id="condText">1〜15整列</strong></p>
+      <div class="touch-help" role="note" aria-live="polite">
+        <ul class="ops">
+          <li><span class="op">スワイプ</span><span class="desc">タイルを空白へスライド</span></li>
+          <li><span class="op">タップ</span><span class="desc">隣接していれば移動</span></li>
+          <li><span class="op">長押し</span><span class="desc">一時停止/再開</span></li>
+        </ul>
+      </div>
+      <p class="splash-sub">タップして開始</p>
+      <button id="startGame" class="btn-primary">PLAY</button>
+    </div>
+  </div>
+
+  <!-- クリア -->
+  <div id="clearSplash" role="dialog" aria-modal="true" class="hidden">
+    <div class="win-card">
+      <h2 class="win-title">🎉 クリア！</h2>
+      <p class="win-desc">
+        手数：<b id="resMoves">0</b> 手<br />
+        タイム：<b id="resTime">00:00</b>
+      </p>
+      <button id="claimBtn" class="btn-primary">宝箱を受け取る</button>
+    </div>
+  </div>
+
+  <!-- 一時停止 -->
+  <div id="pauseSplash" role="dialog" aria-modal="true" class="hidden">
+    <div class="over-card">
+      <h2 class="over-title">⏸ 一時停止</h2>
+      <p class="over-desc">もう一度長押しで再開できます。</p>
+      <button id="resumeBtn" class="btn-primary">再開</button>
+    </div>
+  </div>
+
+  <script src="puzzle.js"></script>
+</body>
+
+</html>

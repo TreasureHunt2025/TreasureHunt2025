@@ -12,8 +12,8 @@ const TARGET_SCORE = 300;      // ★ クリア目標スコア（好みで調整
 const WALL_COLOR = "#2b3b86";
 
 const BUBBLE_COLORS = {
-  0:"#ff7f7f", 1:"#ff7fbf", 2:"#ff7fff", 3:"#bf7fff", 4:"#7f7fff",
-  5:"#7fbfff", 6:"#7fffff", 7:"#7fffbf", 8:"#7fff7f", 9:"#bfff7f", 10:"#ffff7f", 11:"#ffffff"
+  0: "#ff7f7f", 1: "#ff7fbf", 2: "#ff7fff", 3: "#bf7fff", 4: "#7f7fff",
+  5: "#7fbfff", 6: "#7fffff", 7: "#7fffbf", 8: "#7fff7f", 9: "#bfff7f", 10: "#ffff7f", 11: "#ffffff"
 };
 
 const OBJECT_CATEGORIES = {
@@ -76,12 +76,12 @@ class BubbeGame {
     this.gameStatus = "ready";
 
     // 地面と壁
-    const ground = Bodies.rectangle(WIDTH/2, HEIGHT - WALL_T/2, WIDTH, WALL_T, {
+    const ground = Bodies.rectangle(WIDTH / 2, HEIGHT - WALL_T / 2, WIDTH, WALL_T, {
       isStatic: true, label: "ground",
       render: { fillStyle: WALL_COLOR }
     });
-    const leftWall  = Bodies.rectangle(WALL_T/2, HEIGHT/2, WALL_T, HEIGHT, { isStatic:true, label:"leftWall",  render:{ fillStyle: WALL_COLOR } });
-    const rightWall = Bodies.rectangle(WIDTH - WALL_T/2, HEIGHT/2, WALL_T, HEIGHT, { isStatic:true, label:"rightWall", render:{ fillStyle: WALL_COLOR } });
+    const leftWall = Bodies.rectangle(WALL_T / 2, HEIGHT / 2, WALL_T, HEIGHT, { isStatic: true, label: "leftWall", render: { fillStyle: WALL_COLOR } });
+    const rightWall = Bodies.rectangle(WIDTH - WALL_T / 2, HEIGHT / 2, WALL_T, HEIGHT, { isStatic: true, label: "rightWall", render: { fillStyle: WALL_COLOR } });
 
     Composite.add(this.engine.world, [ground, leftWall, rightWall]);
     Runner.run(this.runner, this.engine);
@@ -188,8 +188,7 @@ class BubbeGame {
     if (this.score >= TARGET_SCORE) {
       Runner.stop(this.runner);
       this.gameover = true;
-      \1
-      try { window.parent && window.parent.postMessage({ type:'minigame:clear', detail:{ gameId:'game2', cleared:true, score:this.score } }, '*'); } catch { }
+      try { window.parent && window.parent.postMessage({ type: 'minigame:clear', detail: { gameId: 'game2', cleared: true, score: this.score } }, '*'); } catch { }
     }
   }
 
@@ -198,7 +197,7 @@ class BubbeGame {
     for (const pair of pairs) {
       const { bodyA, bodyB } = pair;
       if (!Composite.get(this.engine.world, bodyA.id, "body") ||
-          !Composite.get(this.engine.world, bodyB.id, "body")) continue;
+        !Composite.get(this.engine.world, bodyB.id, "body")) continue;
 
       if (bodyA.label === bodyB.label && bodyA.label.startsWith("bubble_")) {
         const lvl = Number(bodyA.label.substring(7));
@@ -234,7 +233,7 @@ class BubbeGame {
 
   /* ---------- Pointer操作（スマホ/PC共通） ---------- */
   bindPointer(surface) {
-    try { surface.style.touchAction = "none"; } catch {}
+    try { surface.style.touchAction = "none"; } catch { }
     let isDown = false, pid = null, startX = 0, startY = 0, moved = false, startT = 0;
 
     const localX = (e) => {
@@ -260,7 +259,7 @@ class BubbeGame {
       surface.setPointerCapture(pid);
       movePending(localX(e));
       e.preventDefault();
-    }, { passive:false });
+    }, { passive: false });
 
     surface.addEventListener("pointermove", (e) => {
       if (!isDown || e.pointerId !== pid) return;
@@ -269,7 +268,7 @@ class BubbeGame {
       if (dx > 4 || dy > 4) moved = true;
       movePending(localX(e));
       e.preventDefault();
-    }, { passive:false });
+    }, { passive: false });
 
     const endLike = (e) => {
       if (!isDown || e.pointerId !== pid) return;
@@ -288,8 +287,8 @@ class BubbeGame {
       }
       e.preventDefault();
     };
-    surface.addEventListener("pointerup", endLike, { passive:false });
-    surface.addEventListener("pointercancel", endLike, { passive:false });
+    surface.addEventListener("pointerup", endLike, { passive: false });
+    surface.addEventListener("pointercancel", endLike, { passive: false });
 
     // 既存の click / mousemove は二重発火の元なのでバインドしない
   }
@@ -298,12 +297,17 @@ class BubbeGame {
   fitStage() {
     const container = this.render.canvas?.parentElement;
     if (!container) return;
-    const vw = Math.min(window.innerWidth, (window.visualViewport?.width||window.innerWidth));
-    const vh = Math.min(window.innerHeight, (window.visualViewport?.height||window.innerHeight));
-    const scale = Math.max(0.5, Math.min(vw * 0.95 / WIDTH, vh * 0.88 / HEIGHT));
+    const vw = Math.min(window.innerWidth, (window.visualViewport?.width || window.innerWidth));
+    const vh = Math.min(window.innerHeight, (window.visualViewport?.height || window.innerHeight));
+    // 余白を多めに見て安全にフィット
+    const scaleW = Math.max(0.5, (vw - 12) / WIDTH);
+    const scaleH = Math.max(0.5, (vh - 120) / HEIGHT); // スコア行＋余白ぶん
+    const scale = Math.min(scaleW, scaleH, 1.0); // 等倍を上限に
     this._scale = scale;
+    container.style.transformOrigin = "top center";
     container.style.transform = `scale(${scale})`;
   }
+
 
   /* ---------- スコア ---------- */
   setScore(score) {

@@ -5,7 +5,7 @@
   const ROUNDS = 4;
   const SEQ_LENGTHS = [2, 3, 4, 5];            // 覚える総数：2→3→4→5
   const BEAT_BY_ROUND = [520, 440, 360, 300];  // 点滅テンポ（ms）小さいほど速い
-  const INPUT_GRACE_MS_BY_ROUND = [1200, 1000, 900, 800]; // 入力開始の猶予
+  const INPUT_GRACE_MS_BY_ROUND = [1200, 1000, 900, 800]; // 入力前の猶予
 
   // ========= DOM =========
   const pads = [...document.querySelectorAll('.pad')];
@@ -15,8 +15,8 @@
   const fx = document.getElementById('fx');
   const phaseEl = document.getElementById('phase');
   const progressEl = document.getElementById('progress');
-  const splash = document.getElementById('splash');
-  const startBtn = document.getElementById('startBtn');
+  const splash = document.getElementById('splash');    // 開始＆CLEARで再利用 :contentReference[oaicite:1]{index=1}
+  const startBtn = document.getElementById('startBtn'); // 開始ボタン（HTMLにあり） :contentReference[oaicite:2]{index=2}
   const retryBtn = document.getElementById('retry');
 
   targetEl.textContent = String(ROUNDS);
@@ -28,6 +28,7 @@
   let round = 0;          // 現在ラウンド(1..ROUNDS)
   let playing = false;    // デモ再生中
   let accepting = false;  // 入力受付中
+  let locked = false;     // 入力の二重処理防止
 
   // ========= オーディオ =========
   const ensureAudio = () => { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); };
@@ -39,7 +40,7 @@
     osc.start(t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
     osc.stop(t0 + dur + 0.02);
   };
-  const padFreq = [523.25, 659.25, 783.99, 587.33]; // C5, E5, G5, D5
+  const padFreq = [523.25, 659.25, 783.99, 587.33]; // C5,E5,G5,D5
   const sfxGood = () => { [880, 1175, 1568].forEach((f, i) => tone(f, 0.12, 'square', 0.06, i * 0.08)); };
   const sfxBad = () => { tone(200, .24, 'sawtooth', .05); tone(140, .24, 'sawtooth', .04, .05); };
 
@@ -50,8 +51,9 @@
     if (!keep) setTimeout(() => { panel.classList.remove('show'); }, 800);
   };
   const setPhase = (t) => phaseEl.textContent = t;
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-  // コンフェッティ
+  // コンフェッティ（演出）
   const confetti = (count = 100) => {
     const wrap = document.createElement('div');
     wrap.className = 'confetti';
@@ -86,8 +88,6 @@
     setTimeout(() => el.classList.remove('glow'), beatMs - 10);
   };
 
-  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-
   const resetProgress = () => {
     progressEl.innerHTML = '';
     for (let i = 0; i < ROUNDS; i++) {
@@ -101,7 +101,7 @@
 
   // ========= ゲーム進行 =========
   const startGame = async () => {
-    seq = []; step = 0; round = 0;
+    seq = []; step = 0; round = 0; locked = false;
     resetProgress(); setProgress(0);
     retryBtn.hidden = true;
     await sleep(150);
@@ -117,10 +117,10 @@
     setBeatCSS(beat);
     setPhase(`ラウンド ${round}：見て覚えて…`);
 
-    // 目標長までシーケンスを増やす（徐々に負荷UP）
+    // 目標長までシーケンスを増やす
     const targetLen = SEQ_LENGTHS[round - 1] ?? (seq.length + 1);
     while (seq.length < targetLen) {
-      seq.push((Math.random() * 4 | 0)); // 同色連続OK（サイモン準拠）
+      seq.push((Math.random() * 4 | 0)); // 同色連続OK
     }
 
     // デモ再生
@@ -138,7 +138,6 @@
     ensureAudio();
     for (let i = 0; i < arr.length; i++) {
       const idx = arr[i];
-      // 光り＆音 同期
       flashPad(idx, beatMs);
       tone(padFreq[idx], Math.min(0.26, beatMs / 1000 * 0.5), 'sine', 0.08);
       await sleep(beatMs);
@@ -147,7 +146,8 @@
   };
 
   const handlePad = async (idx) => {
-    if (!accepting) return;
+    if (!accepting || locked) return;
+    locked = true; // 連打対策（1入力ずつ）
     // タップ即反応（光＋音）
     ensureAudio();
     const beatCss = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--beat'));
@@ -156,7 +156,7 @@
 
     // 判定
     const correct = (idx === seq[step]);
-    if (!correct) return onMiss();
+    if (!correct) { locked = false; return onMiss(); }
 
     step++;
     if (step >= seq.length) {
@@ -164,19 +164,17 @@
       accepting = false;
       setProgress(round);
       if (round >= ROUNDS) {
-        // オールクリア
-        showFx('ALL CLEAR!!', 'ok', true);
-        confetti(140);
-        sfxGood();
-        try { window.parent && window.parent.postMessage({ type:'minigame:clear', detail:{ gameId:'game5', cleared:true } }, '*'); } catch { }
-        setPhase('おめでとう！');
-        retryBtn.hidden = false;
-        retryBtn.textContent = 'もう一度';
+        // オールクリア → CLEARスプラ → 5秒後にqr5
+        showClearSplash();
         return;
       }
       showFx('ナイス！', 'ok');
       await sleep(600);
+      locked = false;
       await nextRound();
+    } else {
+      // まだ続く場合
+      locked = false;
     }
   };
 
@@ -186,7 +184,56 @@
     sfxBad();
     try { navigator.vibrate && navigator.vibrate([35]); } catch { }
     await sleep(900);
-    await startGame();
+    await startGame(); // 戻らず、その場でリスタート
+  };
+
+  // ========= CLEAR表示 & 復帰 =========
+  const showClearSplash = () => {
+    sfxGood();
+    try { navigator.vibrate && navigator.vibrate([15, 30, 15]); } catch { }
+    setPhase('おめでとう！');
+    // オーバーレイ（既存 #splash を流用） :contentReference[oaicite:3]{index=3}
+    splash.innerHTML = `
+      <div class="splash-card">
+        <h1>ALL CLEAR!!</h1>
+        <p class="splash-cond">4ラウンド達成 🎉</p>
+        <p class="splash-sub" id="cdHint">5秒後に自動で戻ります</p>
+        <button id="claimNow" class="btn-primary">すぐに受け取る</button>
+      </div>`;
+    splash.style.display = 'grid';
+    confetti(140);
+
+    document.getElementById('claimNow')?.addEventListener('click', () => returnToQR(true), { passive: true });
+
+    // 5秒後に自動復帰（bridge優先）
+    returnToQR(false);
+  };
+
+  const returnToQR = (immediate) => {
+    const go = () => {
+      if (typeof window.completeAndReturn === 'function') {
+        window.completeAndReturn('qr5', { delayMs: 0, replace: true, payload: { rounds: ROUNDS } });
+      } else {
+        const url = '../qr.html?key=qr5';
+        try { location.replace(url); } catch { location.href = url; }
+      }
+    };
+    if (immediate) { go(); return; }
+
+    // カウントダウン表示
+    let left = 5;
+    const hint = document.getElementById('cdHint');
+    const timer = setInterval(() => {
+      left--;
+      if (left >= 0 && hint) hint.textContent = `${left}秒後に自動で戻ります`;
+      if (left < 0) clearInterval(timer);
+    }, 1000);
+
+    if (typeof window.completeAndReturn === 'function') {
+      window.completeAndReturn('qr5', { delayMs: 5000, replace: true, payload: { rounds: ROUNDS } });
+    } else {
+      setTimeout(go, 5000);
+    }
   };
 
   // ========= イベント =========
@@ -194,6 +241,8 @@
     btn.addEventListener('click', () => handlePad(+btn.dataset.idx), { passive: true });
   });
   retryBtn.addEventListener('click', () => startGame(), { passive: true });
+
+  // 起動（開始スプラッシュ経由） :contentReference[oaicite:4]{index=4}
   startBtn.addEventListener('click', async () => {
     splash.style.display = 'none';
     try { ensureAudio(); if (actx.state === 'suspended') await actx.resume(); } catch { }

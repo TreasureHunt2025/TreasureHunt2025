@@ -25,7 +25,7 @@
 
   <main role="main" id="main">
     <div class="center-card" style="text-align:center" aria-live="polite">
-      <h2 id="qrTitle" style="margin-top:0;">QRが読み取られました!ミニゲームをクリアして景品をもらいましょう！</h2>
+      <h2 id="qrTitle" style="margin-top:0;">QRが読み取られました!ミニゲームをクリアしてお宝をゲットしよう！</h2>
       <p id="qrPlace" style="margin:.25rem 0 1rem; color:#6b5e55"></p>
     </div>
 
@@ -38,11 +38,17 @@
       <button id="startGameBtn" class="btn btn-primary btn--wide btn-xl">
         ミニゲームをプレイ
       </button>
+
+      <button id="finishBtn" class="btn btn-secondary btn--wide btn-lg" style="display:none">
+        終了してゴールへ進む
+      </button>
+
+      <button id="backToMapBtn" class="btn btn-outline btn--wide btn-lg">
+        マップに戻る
+      </button>
     </div>
 
-    <p id="goalNote" class="hidden" style="margin:12px 0 0; color:#5a7d70;">
-      お宝を見つけました！<br>ゴールへ進んでクーポンを<br>受け取ってください。
-    </p>
+
   </main>
 
 

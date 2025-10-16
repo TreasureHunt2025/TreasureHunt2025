@@ -1,8 +1,6 @@
 // js/verify.js
 import { db, ensureAuthed } from "./firebase-init.js";
-import {
-  doc, getDoc, getDocs, collection, updateDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+import { doc, getDoc, getDocs, collection, updateDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 const STAFF_PASSWORD = "tokorozawa";
 const VERIFY_KEY = "verify_ok";
@@ -28,6 +26,17 @@ const pwBtn = document.getElementById("pwBtn");
 const pwMsg = document.getElementById("pwMsg");
 
 /* ---------- util ---------- */
+async function retry(fn, { retries = 3, delayMs = 400 } = {}) {
+  let lastErr;
+  for (let i = 0; i <= retries; i++) {
+    try { return await fn(); } catch (e) {
+      lastErr = e;
+      if (i < retries) await new Promise(r => setTimeout(r, delayMs * Math.pow(2, i)));
+    }
+  }
+  throw lastErr;
+}
+
 const setBadge = (t, s) => { if (!badgeEl) return; badgeEl.className = `verify-badge ${t}`; badgeEl.textContent = s; };
 const fmt = (ms) => { const s = Math.max(0, Math.floor((ms || 0) / 1000)); const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); const r = s % 60; return h > 0 ? `${h}時間${m}分${r}秒` : `${m}分${r}秒`; };
 
@@ -79,6 +88,7 @@ async function main() {
 
     const data = snap.data();
     const required = Number(data.goalRequired ?? 4);
+    const DISPLAY_TOTAL = 6;
 
     if (teamEl) teamEl.textContent = data.teamName || "-";
     if (memEl) memEl.textContent = String(data.members || 0);
@@ -86,7 +96,15 @@ async function main() {
     // 進捗（サーバが正）
     const ps = await getDocs(collection(db, "teams", uid, "points"));
     const foundCount = ps.size;
-    if (foundEl) foundEl.textContent = `${foundCount} / ${required}`;
+    if (foundEl) foundEl.textContent = `${foundCount} / ${DISPLAY_TOTAL}`;
+
+    const draws = (foundCount >= 6) ? 3 : (foundCount === 5) ? 2 : (foundCount >= 4) ? 1 : 0;
+    const prizeEl = document.getElementById("prizeInfo");
+    // すでに引換済みなら、その場で表示だけしておく
+    if (prizeEl && data.redeemedAt && draws > 0) {
+      prizeEl.innerHTML = `<span class="big">${draws}回</span> くじが引けます`;
+      prizeEl.hidden = false;
+    }
 
     // 経過時間（参考表示）
     let elapsed = data.elapsed;
@@ -133,15 +151,25 @@ async function main() {
         redeemBtn.disabled = true;
         redeemBtn.textContent = "登録中…";
         try {
-          await updateDoc(ref, { redeemedAt: serverTimestamp() });
+          if (!navigator.onLine) throw new Error("offline");
+          // まずは updateDoc をリトライ
+          await retry(() => updateDoc(ref, { redeemedAt: serverTimestamp() }), { retries: 3, delayMs: 400 })
+            .catch(async () => {
+              // フォールバック：merge で上書き
+              await setDoc(ref, { redeemedAt: serverTimestamp() }, { merge: true });
+            });
           if (titleEl) titleEl.textContent = "引き換え完了しました";
           setBadge("ok", "完了");
           if (redEl) redEl.textContent = `済（${new Date().toLocaleString()}）`;
           redeemBtn.textContent = "完了しました";
+          showPrizeBanner();
         } catch (e) {
           console.error("[verify] redeem failed:", e);
-          setBadge("warn", "通信エラー");
-          if (noteEl) noteEl.textContent = "ネットワーク状況をご確認ください。";
+          const offline = (e && String(e.message).includes("offline")) || !navigator.onLine;
+          setBadge("warn", offline ? "オフライン" : "通信エラー");
+          if (noteEl) noteEl.textContent = offline
+            ? "ネットワークに接続してから再度お試しください。"
+            : "サーバへ到達できませんでした。時間をおいて再度お試しください。";
           redeemBtn.textContent = "もう一度試す";
           redeemBtn.disabled = false;
         }
@@ -155,6 +183,17 @@ async function main() {
     if (noteEl) noteEl.textContent = "ネットワーク状況をご確認ください。";
   }
 }
+
+function showPrizeBanner() {
+  const el = document.getElementById("prizeInfo");
+  const foundTxt = (foundEl?.textContent || "").trim(); // "x / 6"
+  const got = Number((foundTxt.split("/")[0] || "").trim()) || 0;
+  const n = got >= 6 ? 3 : (got === 5 ? 2 : (got >= 4 ? 1 : 0));
+  if (!el || n <= 0) return;
+  el.innerHTML = `<span class="big">${n}回</span> くじが引けます`;
+  el.hidden = false;
+}
+
 
 /* ---------- 起動 ---------- */
 (() => {

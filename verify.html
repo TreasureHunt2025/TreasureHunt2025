@@ -82,6 +82,23 @@
     body.modal-open {
       overflow: hidden;
     }
+
+    .prize-banner {
+      margin: 14px 0 0;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: #fff8e6;
+      border: 1px solid #f3e1b3;
+      color: #6a4d05;
+      font-weight: 800;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    .prize-banner .big {
+      font-size: 34px;
+      margin: 0 .25em;
+    }
   </style>
 </head>
 
@@ -146,6 +163,11 @@
         <button id="redeemBtn" class="btn-go primary" disabled>クーポン引き換え済みにする</button>
         <p>※一度押してしまうと再度やり直すことはできません</p>
       </div>
+
+      <div id="prizeInfo" class="prize-banner" hidden>
+        <!-- JSで内容を入れます -->
+      </div>
+
 
       <p id="note" style="margin:.6rem 0 0;color:#6b5e55"></p>
     </div>

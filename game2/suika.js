@@ -1,3 +1,4 @@
+const CLEAR_SCORE = 800; // 目標スコア（調整可）
 const { Bodies, Body, Composite, Engine, Events, Render, Runner, Sleeping } = Matter;
 
 const WIDTH = 420;

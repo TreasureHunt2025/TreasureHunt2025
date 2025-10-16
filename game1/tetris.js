@@ -357,9 +357,10 @@ function showGameOverSplash() {
 }
 
 // ====== 親（qr.js）への結果送信 ======
+const LINES_TO_CLEAR = 7;
 function notifyParent(cleared, score, lines) {
   const detail = { gameId: "game1", score, time: null, cleared, lines };
-  try { window.parent?.postMessage({ type: "minigame:clear", detail }, "*"); } catch { }
+  try { window.parent?.postMessage({ type: 'minigame:clear', detail: { gameId: 'game1', cleared: true, lines: totalLines, score: score ?? null } }, '*'); } catch { }
   try { window.dispatchEvent(new CustomEvent("minigame:clear", { detail })); } catch { }
 }
 

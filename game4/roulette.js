@@ -173,7 +173,7 @@
   // ===== 結果表示 & 進行 =====
   const allClear = () => {
     showFx('ALL CLEAR!!', 'win'); confetti(120); vibrate([20, 40, 20]);
-    try { window.parent && window.parent.postMessage({ gameId: 'game4', status: 'allclear' }, '*'); } catch { }
+    try { window.parent && window.parent.postMessage({ type:'minigame:clear', detail:{ gameId:'game4', cleared:true } }, '*'); } catch { }
     setPhase('おめでとう！');
     setTimeout(() => {
       showFx('タップで最初から', 'hint');

@@ -168,7 +168,7 @@
         showFx('ALL CLEAR!!', 'ok', true);
         confetti(140);
         sfxGood();
-        try { window.parent && window.parent.postMessage({ gameId: 'game5', status: 'clear' }, '*'); } catch { }
+        try { window.parent && window.parent.postMessage({ type:'minigame:clear', detail:{ gameId:'game5', cleared:true } }, '*'); } catch { }
         setPhase('おめでとう！');
         retryBtn.hidden = false;
         retryBtn.textContent = 'もう一度';

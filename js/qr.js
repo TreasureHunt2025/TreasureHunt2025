@@ -4,6 +4,68 @@ import {
   getDocs, collection
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+// ---- ゲーム開始（ボタン押下時に起動）＆ クリア後の戻り ----
+function openGameOverlay(url, { uid, pointId }) {
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  Object.assign(overlay.style, {
+    position:'fixed', inset:'0', background:'rgba(0,0,0,.55)',
+    zIndex:'9999', display:'flex', alignItems:'center', justifyContent:'center'
+  });
+  const frame = document.createElement('iframe');
+  frame.src = url;
+  Object.assign(frame.style, {
+    width:'min(100vw, 520px)', height:'min(100vh, 780px)', border:'0',
+    borderRadius:'16px', boxShadow:'0 16px 50px rgba(0,0,0,.25)', background:'#111'
+  });
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.textContent = '×';
+  Object.assign(closeBtn.style, {
+    position:'absolute', top:'12px', right:'16px', fontSize:'24px',
+    border:'none', background:'transparent', color:'#fff', cursor:'pointer'
+  });
+
+  function cleanup() {
+    window.removeEventListener('message', onMsg);
+    closeBtn.removeEventListener('click', onClose);
+    overlay.remove();
+  }
+  function onClose() { cleanup(); }
+
+  function onMsg(ev) {
+    const d = ev?.data || {};
+    // 統一フォーマット: { type:'minigame:clear', detail:{ cleared, gameId, score, time } }
+    if (d.type === 'minigame:clear' && d.detail?.cleared) {
+      cleanup();
+      markClearedUI(pointId);
+      // Firestore へ保存（既存の保存関数がある体なら呼ぶ）
+      try { recordPointCleared({ uid, pointId, detail: d.detail }); } catch {}
+      // 5秒待ってマップへ戻る
+      const msg = document.createElement('p');
+      msg.textContent = 'クリア！ 5秒後にマップへ戻ります…';
+      msg.style.cssText = 'text-align:center;margin:8px 0;color:#155419;font-weight:600;';
+      document.querySelector('#main')?.appendChild(msg);
+      setTimeout(() => {
+        location.href = `map.html?uid=${encodeURIComponent(uid)}`;
+      }, 5000);
+    }
+  }
+
+  window.addEventListener('message', onMsg);
+  closeBtn.addEventListener('click', onClose);
+  overlay.append(frame, closeBtn);
+  document.body.appendChild(overlay);
+}
+
+// クリア画面の簡易表示
+function markClearedUI(pointId) {
+  try {
+    const el = document.querySelector('[data-current-point]');
+    if (el) el.textContent = 'このポイントはクリア済みです！';
+  } catch {}
+}
+
 /** 任意の文字列トークン → ポイントID への簡易マップ */
 const TOKEN_TABLE = Object.freeze({
   "TH-QR1": "qr1",
@@ -143,3 +205,17 @@ function playMinigameInOverlay(url) {
     window.addEventListener("keydown", onKey);
   });
 }
+
+
+// 起動ボタンでゲームを開始
+(function setupStartButton(){
+  const btn = document.getElementById('startGameBtn');
+  if (!btn) return;
+  const uid = (new URL(location.href)).searchParams.get('uid') || (sessionStorage.getItem('uid') || '');
+  const pointId = (new URL(location.href)).searchParams.get('key') || (new URL(location.href)).searchParams.get('point');
+  const gameUrl = typeof urlForPoint === 'function' ? urlForPoint(pointId) : (GAME_URLS?.[pointId] || '');
+  if (!uid || !pointId || !gameUrl) { btn.disabled = true; btn.textContent = '開始できません'; return; }
+  btn.addEventListener('click', () => {
+    openGameOverlay(gameUrl, { uid, pointId });
+  });
+})();

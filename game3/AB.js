@@ -108,7 +108,7 @@
 
       if (streak >= 5) {
         elStatus.textContent = 'CLEAR! おめでとう！'; vibrate([15, 30, 15]);
-        try { window.parent && window.parent.postMessage({ gameId: 'game3', status: 'clear' }, '*'); } catch { }
+        try { try { window.parent?.postMessage({ type: 'minigame:clear', detail: { gameId: 'game3', cleared: true } }, '*'); } catch { } } catch { }
         return; // クリア後はボタン無効のまま
       }
       setTimeout(render, isBoth ? 600 : 460);

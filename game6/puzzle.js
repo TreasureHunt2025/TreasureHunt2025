@@ -329,7 +329,7 @@
       cleared: !!cleared,
       moves
     };
-    try { window.parent?.postMessage({ type: "minigame:clear", detail }, "*"); } catch { }
+    try { window.parent?.postMessage({ type:'minigame:clear', detail:{ gameId:'game6', cleared:true, moves, time: secFromStart() } }, '*'); } catch { }
     try { window.dispatchEvent(new CustomEvent("minigame:clear", { detail })); } catch { }
   }
 

@@ -191,15 +191,12 @@ function setupFinishButton() {
 }
 
 // === 初期化 ========================================================
-document.addEventListener("DOMContentLoaded", async () => {;
+document.addEventListener("DOMContentLoaded", async () => {
 
 
   const pointId = normalizeToPointId({ key: getParam("key"), token: getParam("token") });
   const pointLabel = $("#pointId");
   if (pointLabel && pointId) pointLabel.textContent = pointId;
-
-  // ゲームから戻ってきたクリア結果を適用
-  await applyReturnIfAny();
 
   const ret = await applyReturnIfAny();
   applyPageMode({ returned: !!ret?.applied })

@@ -1,4 +1,4 @@
-// js/qr.js — button-only start, supports #primaryCta & #startGameBtn, goal after 6 points
+// js/qr.js — button-only start, robust delegation for #primaryCta & #startGameBtn
 import { db, requireUidOrRedirect } from "./firebase-init.js";
 import {
   collection, doc, getDocs, setDoc, serverTimestamp
@@ -79,20 +79,17 @@ function openGameOverlay(url, { uid, pointId }) {
 }
 
 /** クリア確定時の保存→6個達成ならゴールへ */
-async function recordPointCleared({ uid, pointId, detail }) {
+async function recordPointCleared({ uid, pointId }) {
   try {
     await setDoc(
       doc(db, "teams", uid, "points", pointId),
       { foundAt: serverTimestamp() },
       { merge: true }
     );
-
-    cacheFound(pointId); // 地図側UI用のローカルキャッシュ
+    cacheFound(pointId);
 
     const snap = await getDocs(collection(db, "teams", uid, "points"));
-    const foundCount = snap.size;
-
-    if (foundCount >= GOAL_REQUIRED) {
+    if (snap.size >= GOAL_REQUIRED) {
       setTimeout(() => {
         location.replace(`goal.html?uid=${encodeURIComponent(uid)}`);
       }, 500);
@@ -115,38 +112,44 @@ function cacheFound(pointId) {
   } catch { }
 }
 
-/** 起動ボタン（#primaryCta / #startGameBtn / data-action="startGame"）をセットアップ：必ず認証後に判定 */
-(async function setupStartButtons() {
-  // どれでも反応するように全て拾う
-  const btns = Array.from(
-    document.querySelectorAll('#primaryCta, #startGameBtn, [data-action="startGame"]')
-  );
-  if (btns.length === 0) return;
-
-  // 1) UIDを確実に取得（未ログインのまま無効化されるのを防ぐ）
+/** ---- 起動ボタンを“確実に”拾う：準備→イベント委譲 ---- */
+(async function boot() {
+  // 1) 必要な情報を先に確定
   const uid = await requireUidOrRedirect();
   window.uid = uid;
 
-  // 2) QRキーを正規化
   const params = new URLSearchParams(location.search);
   const pointId = normalizeToPointId({ key: params.get("key"), token: params.get("token") });
 
-  // 3) URL決定：urlForPoint() → GAME_URLS[pointId] → default の順でフォールバック
   const candidateFn = (typeof urlForPoint === "function") ? urlForPoint(pointId) : null;
   const candidateMap = GAME_URLS?.[pointId];
   const gameUrl = candidateFn || candidateMap || GAME_URLS?.default || "";
 
-  // 4) 各ボタンに同じ挙動を付与
+  // 2) 既存ボタンがあれば状態を反映（重なりや再描画に関係なく最後にイベント委譲で拾う）
+  const btns = document.querySelectorAll('#primaryCta, #startGameBtn, [data-action="startGame"]');
   for (const btn of btns) {
     if (!pointId || !gameUrl) {
-      btn.disabled = true;
+      btn.setAttribute("disabled", "true");
       btn.textContent = !pointId ? "開始できません（QR不明）" : "開始できません（URL未設定）";
-      continue;
+    } else {
+      btn.removeAttribute("disabled");
+      if (!btn.textContent.trim()) btn.textContent = "ミニゲームをプレイ";
     }
-    // a/Buttonどちらでも安全に
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      openGameOverlay(gameUrl, { uid, pointId });
-    });
   }
+
+  if (!pointId || !gameUrl) return; // ここで終了
+
+  // 3) ドキュメント単位でクリックを拾う（重なり・差し替え・複製にも強い）
+  const START_SEL = '#primaryCta, #startGameBtn, [data-action="startGame"]';
+  const handleStart = (e) => {
+    const t = e.target.closest?.(START_SEL);
+    if (!t) return;
+    e.preventDefault();
+    if (t.hasAttribute("disabled")) return;
+    openGameOverlay(gameUrl, { uid, pointId });
+  };
+
+  // click / pointerup の両方で拾う（iOS対策として pointerup も）
+  document.addEventListener("click", handleStart);
+  document.addEventListener("pointerup", handleStart);
 })();

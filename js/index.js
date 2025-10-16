@@ -1,20 +1,9 @@
+// js/index.js (v10.13.2, safer DOM)
 import { db, ensureAuthed } from "./firebase-init.js";
 import {
   collection, query, where, orderBy, limit, onSnapshot, getDocs,
   doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-
-/* ---------- ナビ開閉（共通） ---------- */
-const navToggle = document.getElementById("nav-toggle");
-const mainMenu = document.getElementById("main-menu");
-if (navToggle && mainMenu) {
-  navToggle.addEventListener("click", () => {
-    const expanded = navToggle.getAttribute("aria-expanded") === "true";
-    const next = !expanded;
-    navToggle.setAttribute("aria-expanded", String(next));
-    mainMenu.classList.toggle("active", next);
-  });
-}
 
 /* ---------- util ---------- */
 function yyyymmddJST() {
@@ -49,7 +38,10 @@ if (leaderboardRoot) {
       i += 1;
       const { teamName = "匿名チーム", elapsed = 0 } = d.data();
       const li = document.createElement("li");
-      li.innerHTML = `<strong>${i}位</strong>　${teamName} — ${formatDuration(elapsed)}`;
+      const strong = document.createElement("strong");
+      strong.textContent = `${i}位`;
+      const text = document.createTextNode(`　${teamName} — ${formatDuration(elapsed)}`);
+      li.append(strong, text);
       ul.appendChild(li);
     });
     leaderboardRoot.replaceChildren(ul);
@@ -69,7 +61,7 @@ if (leaderboardRoot) {
     },
     async (err) => {
       console.warn("[leaderboard] realtime disabled; fallback to polling:", err);
-      try { unsubscribe?.(); } catch { /* noop */ }
+      try { unsubscribe?.(); } catch {}
       await renderOnce();
       fallbackTimer = setInterval(renderOnce, 15000);
     }

@@ -1,19 +1,15 @@
-// js/firebase-init.js (prod, unified 10.13.2)
+// js/firebase-init.js (CDN modules, no Analytics)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-import {
-  getFirestore, doc, getDoc
-} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import {
-  getAuth, onAuthStateChanged, signInAnonymously
-} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 
-// ==== Firebase config (本番) ====
-// * measurementId は未使用のため省略（Analytics無効）
+// ===== Firebase config (本番) =====
+// * Analytics を使わないため measurementId は省略
 const firebaseConfig = {
   apiKey: "AIzaSyB-4kv_D6Nza7nvAAcTZC7R97atLXhUHMs",
   authDomain: "treasurehunt2025-6e836.firebaseapp.com",
   projectId: "treasurehunt2025-6e836",
-  storageBucket: "treasurehunt2025-6e836.firebasestorage.app",
+  storageBucket: "treasurehunt2025-6e836.appspot.com",
   messagingSenderId: "615988195129",
   appId: "1:615988195129:web:767d2d934cbebc0521c2e8"
 };

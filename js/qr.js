@@ -26,57 +26,74 @@ const GAME_URLS = {
 
 const GOAL_REQUIRED = 6; // 6個到達でゴールへ
 
-/** ゲームをオーバーレイで起動（postMessageで結果受け取り） */
+/** ゲームを“完全フルスクリーン”で起動（×ボタンなし） */
 function openGameOverlay(url, { uid, pointId }) {
+  // 既存のオーバーレイがあれば消す
   document.querySelector("#minigame-overlay")?.remove();
 
+  // フルスクリーン用ラッパ
   const ov = document.createElement("div");
   ov.id = "minigame-overlay";
   ov.style.cssText = `
-    position: fixed; inset: 0; background: rgba(0,0,0,.75);
-    display: flex; align-items: center; justify-content: center; z-index: 9999;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #000;
   `;
 
-  const frameWrap = document.createElement("div");
-  frameWrap.style.cssText = `
-    position: relative; width: min(92vw, 800px); height: min(92vh, 600px);
-    background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.6);
-  `;
-
-  const closeBtn = document.createElement("button");
-  closeBtn.type = "button";
-  closeBtn.textContent = "×";
-  closeBtn.setAttribute("aria-label", "閉じる");
-  closeBtn.style.cssText = `
-    position: absolute; right: 8px; top: 6px; z-index: 2;
-    font-size: 24px; line-height: 1; background: transparent; color: #fff; border: none; cursor: pointer;
-  `;
-  closeBtn.addEventListener("click", () => {
-    window.removeEventListener("message", onMsg);
-    ov.remove();
-  });
-
+  // ゲーム本体の iframe（画面いっぱい）
   const iframe = document.createElement("iframe");
   iframe.src = url;
-  iframe.allow = "gamepad *; autoplay *";
-  iframe.style.cssText = "width:100%;height:100%;border:0;background:#111;";
+  iframe.style.cssText = `
+    position: absolute;
+    inset: 0;
+    width: 100vw;
+    height: 100dvh;        /* 動的ビューポートでスマホのアドレスバー分も埋める */
+    border: 0;
+    background: #000;
+  `;
+  iframe.setAttribute("allowfullscreen", "");     // iOS/Android での全画面許可
+  iframe.allow = "fullscreen; autoplay *; gamepad *";
 
+  // クリア通知を受けて保存 → 6個到達でゴール → 後片付け
   async function onMsg(ev) {
     const data = ev?.data;
     if (!data || data.type !== "minigame:clear") return;
     try {
       await recordPointCleared({ uid, pointId, detail: data.detail || {} });
     } finally {
-      window.removeEventListener("message", onMsg);
-      ov.remove();
+      cleanup();
     }
   }
-  window.addEventListener("message", onMsg);
 
-  frameWrap.append(closeBtn, iframe);
-  ov.append(frameWrap);
+  function cleanup() {
+    window.removeEventListener("message", onMsg);
+    // フルスクリーン解除（可能なら）
+    const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+    if (document.fullscreenElement && exit) {
+      try { exit.call(document); } catch { }
+    }
+    // スクロールを戻す & DOM 片付け
+    document.body.style.overflow = prevOverflow;
+    ov.remove();
+  }
+
+  // DOM 追加 & 監視開始
+  window.addEventListener("message", onMsg);
+  ov.append(iframe);
   document.body.append(ov);
+
+  // 背面のスクロールを止める
+  const prevOverflow = document.body.style.overflow;
+  document.body.style.overflow = "hidden";
+
+  // 可能ならフルスクリーン API を要求（失敗しても見た目は全画面表示）
+  const reqFS = ov.requestFullscreen || ov.webkitRequestFullscreen || ov.msRequestFullscreen;
+  if (reqFS) {
+    try { reqFS.call(ov); } catch { }
+  }
 }
+
 
 /** クリア確定時の保存→6個達成ならゴールへ */
 async function recordPointCleared({ uid, pointId }) {

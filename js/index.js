@@ -1,8 +1,41 @@
-// js/index.js (v10.13.2, safer DOM)
 import { db } from "./firebase-init.js";
 import {
-  collection, query, where, orderBy, limit, onSnapshot, getDocs
+  collection, query, where, orderBy, limit, onSnapshot, getDocs, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+// --- ホーム側ガード：クリア/交換済みは再参加ブロック ---
+document.addEventListener("DOMContentLoaded", async () => {
+  const teamId = localStorage.getItem("teamId");
+  if (!teamId) return; // 未登録の人は通常表示
+
+  try {
+    const snap = await getDoc(doc(db, "teams", teamId));
+    if (!snap.exists()) return;
+    const { status } = snap.data() || {};
+
+    if (status === "cleared") {
+      // クリア済みはゴールへ（引き換えQRを即表示）
+      location.replace(`./goal.html?team=${encodeURIComponent(teamId)}&info=${encodeURIComponent("クリア済みです。引き換えQRを表示します。")}`);
+      return;
+    }
+    if (status === "redeemed") {
+      // 交換済みは開始UIを無効化（あれば）
+      const start = document.querySelector('#startBtn, [data-action="start"], #primaryCta');
+      if (start) {
+        start.setAttribute('disabled', 'disabled');
+        start.textContent = '参加は終了しています（交換済）';
+      }
+      // お知らせバナー（任意）
+      const note = document.createElement('div');
+      note.className = 'notice';
+      note.textContent = 'このチームは交換済みです。ゲームの再参加はできません。';
+      document.body.prepend(note);
+    }
+  } catch {
+    // 読み取りエラー時は何もしない（既存UI優先）
+  }
+}, { once: true });
+
 
 /* ---------- util ---------- */
 function yyyymmddJST() {
@@ -60,7 +93,7 @@ if (leaderboardRoot) {
     },
     async (err) => {
       console.warn("[leaderboard] realtime disabled; fallback to polling:", err);
-      try { unsubscribe?.(); } catch {}
+      try { unsubscribe?.(); } catch { }
       await renderOnce();
       fallbackTimer = setInterval(renderOnce, 15000);
     }

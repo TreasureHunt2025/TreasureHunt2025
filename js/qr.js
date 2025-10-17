@@ -1,6 +1,6 @@
 import { db, requireTeamOrRedirect } from "./firebase-init.js";
 import {
-  collection, doc, getDocs, setDoc, serverTimestamp
+  collection, doc, getDocs, getDoc, setDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 // === 設定 ==========================================================
@@ -201,10 +201,34 @@ function setupFinishButton() {
   });
 }
 
-// === 初期化 ========================================================
+// --- 起動直後ガード：未登録はindexへ／クリア済みはgoalへ ---
+async function guardRegistrationAndCleared() {
+  // 「戻り先(next)」は今いるQRページをそのまま付ける
+  const next = `${location.pathname}${location.search}`;
+
+  try {
+    // 未登録ならここで例外→indexへ
+    const teamId = await requireTeamOrRedirect();
+
+    // クリア/交換済みはここでブロックしてgoalへ
+    const snap = await getDoc(doc(db, "teams", teamId));
+    const status = snap.exists() ? snap.data().status : null;
+    if (status === "cleared" || status === "redeemed") {
+      const info = (status === "cleared") ? "クリア済みです。引き換えQRを表示します。" : "交換済みです。";
+      location.replace(`./goal.html?team=${encodeURIComponent(teamId)}&info=${encodeURIComponent(info)}`);
+      return false;
+    }
+    return true; // 通常継続
+  } catch {
+    // 未登録：indexへ強制送還（登録後はnextで自動復帰）
+    location.replace(`./index.html?next=${encodeURIComponent(next)}`);
+    return false;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
-
-
+  // ← 既存処理の最上流でブロック
+  if (!(await guardRegistrationAndCleared())) return;
   const pointId = normalizeToPointId({ key: getParam("key"), token: getParam("token") });
   const pointLabel = $("#pointId");
   if (pointLabel && pointId) pointLabel.textContent = pointId;

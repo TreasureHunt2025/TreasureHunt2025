@@ -10,7 +10,6 @@ const rankBtn = document.getElementById("rankBtn");
 const homeBtn = document.getElementById("homeBtn");
 const teamEl = document.getElementById("resultTeam");
 const memEl = document.getElementById("resultMembers");
-const treEl = document.getElementById("resultTreasures");
 const saveEl = document.getElementById("saveStatus");
 const qrCanvas = document.getElementById("goalQr");
 const verifyUrlEl = document.getElementById("verifyUrl");
@@ -98,6 +97,10 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     const data = teamSnap.data();
     const required = Number(data.goalRequired ?? 4);
+
+    const treEl =
+      document.getElementById("resultTreasures") ||
+      document.getElementById("resultTreasuresFound");
 
     // サーバ（Firestore）の points 件数で進捗判定
     const ps = await getDocs(collection(db, "teams", uid, "points"));

@@ -1323,3 +1323,19 @@ body.tutorial-page #slides canvas {
   opacity: .6;
   cursor: not-allowed;
 }
+
+/* どの画面幅でもヒーローのボタンは中央寄せで縦積み */
+.hero-actions {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+.hero-actions>.btn,
+.hero-actions>.btn-primary,
+.hero-actions>.btn-secondary {
+  display: block;
+  width: min(480px, 100%);
+  /* btn--wide と同等の幅指定 */
+  margin: 0 auto;
+}

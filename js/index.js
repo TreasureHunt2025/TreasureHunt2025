@@ -1,8 +1,7 @@
 // js/index.js (v10.13.2, safer DOM)
-import { db, ensureAuthed } from "./firebase-init.js";
+import { db } from "./firebase-init.js";
 import {
-  collection, query, where, orderBy, limit, onSnapshot, getDocs,
-  doc, getDoc
+  collection, query, where, orderBy, limit, onSnapshot, getDocs
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 /* ---------- util ---------- */
@@ -67,57 +66,3 @@ if (leaderboardRoot) {
     }
   );
 }
-
-/* ---------- ヒーロー部：続き/制限/引換QR 再表示 ---------- */
-(async () => {
-  const hero = document.querySelector(".hero-content");
-  if (!hero) return;
-
-  try {
-    const user = await ensureAuthed();
-    const uid = user?.uid;
-    if (!uid) return;
-
-    const ref = doc(db, "teams", uid);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return;
-
-    const team = snap.data();
-    const today = yyyymmddJST();
-
-    // 1) 続きから再開（elapsed 未保存＝ゴール前）
-    if (!team.elapsed) {
-      const btn = document.createElement("a");
-      btn.href = `map.html?uid=${encodeURIComponent(uid)}`;
-      btn.className = "btn-primary";
-      btn.style.marginLeft = "0.6rem";
-      btn.textContent = "続きから再開";
-      hero.appendChild(btn);
-    }
-
-    // 2) 本日の参加は終了（同一日 && 引換済み）
-    if (team.playDay === today && team.redeemedAt) {
-      const a = document.querySelector('.hero-content a[href$="register.html"]');
-      if (a) {
-        a.setAttribute("aria-disabled", "true");
-        a.classList.add("btn-disabled");
-        a.addEventListener("click", (e) => e.preventDefault());
-        a.textContent = "本日の参加は終了しました";
-      }
-      const p = hero.querySelector("p");
-      if (p) p.textContent = "1日1回の参加となります";
-    }
-
-    // 3) 引換QRを再表示（elapsed 済み && まだ redeemedAt なし）
-    if (team.elapsed && !team.redeemedAt) {
-      const btn = document.createElement("a");
-      btn.href = `goal.html?uid=${encodeURIComponent(uid)}`;
-      btn.className = "btn-secondary";
-      btn.style.marginLeft = "0.6rem";
-      btn.textContent = "景品引換QRを再表示";
-      hero.appendChild(btn);
-    }
-  } catch (e) {
-    console.warn("[index] hero section skipped:", e);
-  }
-})();

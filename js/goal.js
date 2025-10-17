@@ -105,7 +105,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     if (teamEl) teamEl.textContent = data.teamName || "-";
     if (memEl) memEl.textContent = String(data.members || 0);
-    if (treEl) treEl.textContent = `${found} / ${required}`;
+    if (treEl) treEl.textContent = String(found);
 
     if (found < required) {
       if (timeEl) timeEl.textContent = "まだゴール条件を満たしていません。";
@@ -113,9 +113,6 @@ window.addEventListener("DOMContentLoaded", async () => {
       setButtonsIncomplete(uid);
       return;
     }
-
-    const TOTAL_TREASURES = 6;
-    if (treEl) treEl.textContent = `${found} / ${TOTAL_TREASURES}`;
 
     // elapsed 未保存なら保存（簡易：端末時刻ベースで差分計算）
     let { elapsed, startTime } = data;

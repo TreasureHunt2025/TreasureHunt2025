@@ -97,7 +97,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
 
     const data = teamSnap.data();
-    const required = Number(data.goalRequired ?? 4);
+    const required = Number(data.goalRequired ?? 6);
 
     // サーバ（Firestore）の points 件数で進捗判定
     const ps = await getDocs(collection(db, "teams", uid, "points"));

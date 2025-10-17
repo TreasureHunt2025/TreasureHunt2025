@@ -1,21 +1,18 @@
 const { Bodies, Body, Composite, Engine, Events, Render, Runner, Sleeping } = Matter;
 
-/* ========= 可調整パラメータ（操作） ========= */
-const TAP_MAX_MS = 230;       // これ以下の素早いタップは「落下」
-const TAP_MAX_MOVE = 12;      // タップ中の移動がこのpx以下ならタップ扱い
-const FLICK_DROP_DY = 48;     // 下方向フリックで即落下する縦移動(px)
+/* ========= 投入テンポ ========= */
 const POST_DROP_INTERVAL = 350; // 連続投入までの待ち(ms)
 
-/* ========= 可調整パラメータ（物理） ========= */
+/* ========= 物理 ========= */
 const PHYS = {
-  gravityY: 1.25,         // 重力（大きめで“だらつき”防止）
-  restitution: 0.02,      // 反発（小さめで“バウンド感”抑制）
-  friction: 0.25,         // 接触摩擦
-  frictionStatic: 0.22,   // 静止摩擦
-  frictionAir: 0.004,     // 空気抵抗（小さめで“もっさり”防止）
-  positionIterations: 10, // 位置反復（剛性感UP）
-  velocityIterations: 8,  // 速度反復（剛性感UP）
-  wallColor: "#2b3b86",
+  gravityY: 1.25,         // 重力加速度
+  restitution: 0.03,      // 反発係数
+  friction: 0.40,         // 接触摩擦
+  frictionStatic: 0.60,   // 静止摩擦
+  frictionAir: 0.02,      // 空気抵抗
+  positionIterations: 10, // 物理解の反復回数
+  velocityIterations: 8,  // 
+  wallColor: "#2b3b86",  //壁の塗り色
 };
 
 /* ========= ゲーム定数 ========= */
@@ -24,11 +21,24 @@ const HEIGHT = 700;
 const WALL_T = 10;
 const DEADLINE = 600;
 const MAX_LEVEL = 11;
-const TARGET_SCORE = 300; // 目標スコア（suika.htmlの表示と合わせてください）
+const TARGET_SCORE = 300;
+
+/* 高コントラストの12色パレット（レベル0〜11） */
 const BUBBLE_COLORS = {
-  0: "#ff7f7f", 1: "#ff7fbf", 2: "#ff7fff", 3: "#bf7fff", 4: "#7f7fff",
-  5: "#7fbfff", 6: "#7fffff", 7: "#7fffbf", 8: "#7fff7f", 9: "#bfff7f", 10: "#ffff7f", 11: "#ffffff"
+  0: "#ff3b30", // red
+  1: "#ff9500", // orange
+  2: "#ffd60a", // yellow
+  3: "#34c759", // green
+  4: "#00c7be", // teal
+  5: "#32ade6", // cyan
+  6: "#0a84ff", // blue
+  7: "#5e5ce6", // indigo
+  8: "#bf5af2", // purple
+  9: "#ff2d55", // pink
+  10: "#a2845e", // brown-ish
+  11: "#ffffff", // white (最大合体などに備え)
 };
+
 const OBJECT_CATEGORIES = { WALL: 0x0001, BUBBLE: 0x0002, BUBBLE_PENDING: 0x0004 };
 
 class BubbleGame {
@@ -77,6 +87,7 @@ class BubbleGame {
     this.fitStage = this.fitStage.bind(this);
     window.addEventListener("resize", this.fitStage);
     window.visualViewport?.addEventListener("resize", this.fitStage);
+    window.addEventListener("orientationchange", this.fitStage);
     this.fitStage();
   }
 
@@ -113,9 +124,9 @@ class BubbleGame {
     this.message.innerHTML = `
       <div class="card">
         <p class="mainText">バブルゲーム</p>
-        <p class="subText">左右ドラッグで位置調整／離すと落下</p>
+        <p class="subText">指で左右にドラッグして位置調整／指を離すと落下</p>
         <button type="button" class="button startBtn">ゲーム開始</button>
-        <div class="hint">目標スコア 300 に到達でクリア（現在: ${TARGET_SCORE}）</div>
+        <div class="hint">目標スコア ${TARGET_SCORE} に到達でクリア</div>
       </div>`;
     this.message.style.display = "grid";
     this.message.querySelector(".startBtn").addEventListener("click", this.start.bind(this));
@@ -143,7 +154,6 @@ class BubbleGame {
     this.message.style.display = "grid";
     const claim = this.message.querySelector(".claimBtn");
     claim.addEventListener("click", () => this.returnToQR(true));
-    // カウントダウン表示（任意）
     let left = 5;
     const hint = this.message.querySelector("#cdHint");
     const timer = setInterval(() => {
@@ -199,7 +209,7 @@ class BubbleGame {
       if (b.position.y < HEIGHT - DEADLINE && b.velocity.y < 0) {
         Runner.stop(this.runner);
         this.gameover = true;
-        this.showGameOverMessage(); // ← 失敗時は戻らない（その場で再挑戦）
+        this.showGameOverMessage();
         return;
       }
     }
@@ -210,8 +220,8 @@ class BubbleGame {
     if (this.score >= TARGET_SCORE) {
       Runner.stop(this.runner);
       this.gameover = true;
-      this.showClearMessage(); // オーバーレイを出しつつ…
-      this.returnToQR(false);  // …5秒後に戻す（bridge優先）
+      this.showClearMessage();
+      this.returnToQR(false);
     }
   }
 
@@ -224,8 +234,6 @@ class BubbleGame {
 
       if (bodyA.label === bodyB.label && bodyA.label.startsWith("bubble_")) {
         const lvl = Number(bodyA.label.substring(7));
-
-        // スコア（指数加算は従来踏襲）
         this.setScore(this.score + (2 ** lvl));
         this.checkClear();
 
@@ -261,7 +269,7 @@ class BubbleGame {
   /* ====== Pointer操作（スマホ/PC共通） ====== */
   bindPointer(surface) {
     try { surface.style.touchAction = "none"; } catch { }
-    let isDown = false, pid = null, sx = 0, sy = 0, moved = false, t0 = 0;
+    let isDown = false, pid = null, sx = 0, sy = 0, moved = false;
 
     const localX = (e) => {
       const rect = surface.getBoundingClientRect();
@@ -278,8 +286,8 @@ class BubbleGame {
     };
 
     surface.addEventListener("pointerdown", (e) => {
-      if (this.gameStatus === "ready") return;
-      isDown = true; pid = e.pointerId; moved = false; t0 = Date.now();
+      if (this.gameStatus !== "canput") return; // 準備中・インターバルは無視
+      isDown = true; pid = e.pointerId; moved = false;
       sx = localX(e); sy = e.clientY;
       surface.setPointerCapture(pid);
       movePending(localX(e));
@@ -289,24 +297,7 @@ class BubbleGame {
     surface.addEventListener("pointermove", (e) => {
       if (!isDown || e.pointerId !== pid) return;
       const cx = localX(e);
-      const dx = Math.abs(cx - sx);
-      const dy = Math.abs(e.clientY - sy);
-      if (dx > TAP_MAX_MOVE || dy > TAP_MAX_MOVE) moved = true;
-
-      // 下方向フリックで即落下
-      if (e.clientY - sy > FLICK_DROP_DY && this.gameStatus === "canput" && !this.gameover) {
-        this.putCurrentBubble();
-        this.gameStatus = "interval";
-        setTimeout(() => {
-          if (!this.gameover) { this.createNewBubble(); this.gameStatus = "canput"; }
-        }, POST_DROP_INTERVAL);
-        isDown = false;
-        try { surface.releasePointerCapture(pid); } catch { }
-        pid = null;
-        e.preventDefault();
-        return;
-      }
-
+      if (Math.abs(cx - sx) > 4 || Math.abs(e.clientY - sy) > 4) moved = true; // しっかりドラッグしたか
       movePending(cx);
       e.preventDefault();
     }, { passive: false });
@@ -315,11 +306,9 @@ class BubbleGame {
       if (!isDown || e.pointerId !== pid) return;
       isDown = false;
       try { surface.releasePointerCapture(pid); } catch { }
-      const dt = Date.now() - t0;
-      const totalMove = Math.max(Math.abs(localX(e) - sx), Math.abs(e.clientY - sy));
 
-      // 素早いタップで落下
-      if (this.gameStatus === "canput" && !this.gameover && dt <= TAP_MAX_MS && totalMove <= TAP_MAX_MOVE) {
+      // ★タップ落とし禁止：十分にドラッグしていない場合は落とさない
+      if (this.gameStatus === "canput" && !this.gameover && moved) {
         this.putCurrentBubble();
         this.gameStatus = "interval";
         setTimeout(() => {
@@ -333,16 +322,26 @@ class BubbleGame {
     surface.addEventListener("pointercancel", endLike, { passive: false });
   }
 
-  /* ====== 画面フィット（CSSスケール） ====== */
+  /* ====== 画面フィット（端末ごとに実画面へ合わせてscale） ====== */
   fitStage() {
     const wrap = this.render.canvas?.parentElement;
     if (!wrap) return;
+
+    // 実効ビューポート幅・高
     const vw = Math.min(window.innerWidth, (window.visualViewport?.width || window.innerWidth));
-    const vh = Math.min(window.innerHeight, (window.visualViewport?.height || window.innerHeight));
-    const scaleW = Math.max(0.5, (vw - 12) / WIDTH);
-    const scaleH = Math.max(0.5, (vh - 120) / HEIGHT);
-    const scale = Math.min(scaleW, scaleH, 1.0);
+    const vhRaw = Math.min(window.innerHeight, (window.visualViewport?.height || window.innerHeight));
+
+    // 上部のスコア表示などを差し引いて可用高さを見積もる
+    const scoreH = document.querySelector(".score-container")?.getBoundingClientRect().height || 0;
+    const margin = 28; // ちょい余白
+    const vh = Math.max(320, vhRaw - scoreH - margin);
+
+    const scaleW = (vw - 12) / WIDTH;
+    const scaleH = vh / HEIGHT;
+
+    const scale = Math.max(0.5, Math.min(scaleW, scaleH, 1.0));
     this._scale = scale;
+
     wrap.style.transformOrigin = "top center";
     wrap.style.transform = `scale(${scale})`;
   }
@@ -364,7 +363,6 @@ class BubbleGame {
       }
     };
     if (immediate) { go(); return; }
-    // 基本設計：5秒後に戻す
     if (typeof window.completeAndReturn === "function") {
       window.completeAndReturn("qr2", { delayMs: 5000, replace: true, payload: { score: this.score } });
     } else {
@@ -379,7 +377,6 @@ window.onload = () => {
   const message = document.querySelector(".message");
   const onChangeScore = (val) => {
     const scoreEl = document.querySelector(".score");
-    // (Target: X) を維持しつつスコアだけ更新
     const target = `(Target: ${TARGET_SCORE})`;
     scoreEl.textContent = `Score: ${val} `;
     const span = document.createElement("span");

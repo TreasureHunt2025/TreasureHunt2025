@@ -3,7 +3,7 @@
 
   // ========= ラウンド設計（4R固定：個数↑ & テンポ↑） =========
   const ROUNDS = 4;
-  const SEQ_LENGTHS = [2, 3, 4, 5];            // 覚える総数：2→3→4→5
+  const SEQ_LENGTHS = [2, 4, 6, 8];            // 覚える総数：2→3→4→5
   const BEAT_BY_ROUND = [520, 440, 360, 300];  // 点滅テンポ（ms）小さいほど速い
   const INPUT_GRACE_MS_BY_ROUND = [1200, 1000, 900, 800]; // 入力前の猶予
 
@@ -198,7 +198,7 @@
         <h1>ALL CLEAR!!</h1>
         <p class="splash-cond">4ラウンド達成 🎉</p>
         <p class="splash-sub" id="cdHint">5秒後に自動で戻ります</p>
-        <button id="claimNow" class="btn-primary">すぐに受け取る</button>
+        <button id="claimNow" class="btn-primary">お宝を受け取る</button>
       </div>`;
     splash.style.display = 'grid';
     confetti(140);

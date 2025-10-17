@@ -113,9 +113,9 @@ class BubbleGame {
     this.message.innerHTML = `
       <div class="card">
         <p class="mainText">バブルゲーム</p>
-        <p class="subText">タップで落下・左右スワイプで位置調整／下フリックで即落下</p>
+        <p class="subText">左右ドラッグで位置調整／離すと落下</p>
         <button type="button" class="button startBtn">ゲーム開始</button>
-        <div class="hint">目標スコアに到達でクリア（現在: ${TARGET_SCORE}）</div>
+        <div class="hint">目標スコア 300 に到達でクリア（現在: ${TARGET_SCORE}）</div>
       </div>`;
     this.message.style.display = "grid";
     this.message.querySelector(".startBtn").addEventListener("click", this.start.bind(this));
@@ -137,7 +137,7 @@ class BubbleGame {
       <div class="card">
         <p class="mainText">CLEAR!</p>
         <p class="subText">Score: ${this.score}</p>
-        <button type="button" class="button claimBtn">受け取る（即時）</button>
+        <button type="button" class="button claimBtn">お宝を受け取る</button>
         <div class="hint" id="cdHint">5秒後に自動で戻ります</div>
       </div>`;
     this.message.style.display = "grid";

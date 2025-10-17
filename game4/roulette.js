@@ -189,7 +189,7 @@
         <h1>ALL CLEAR!!</h1>
         <p class="splash-cond">3回連続で当てました 🎉</p>
         <p class="splash-sub">5秒後に自動で戻ります</p>
-        <button id="claimNow" class="btn-primary">すぐに受け取る</button>
+        <button id="claimNow" class="btn-primary">お宝を受け取る</button>
       </div>`;
     splash.style.display = 'grid';
     document.getElementById('claimNow')?.addEventListener('click', () => returnToQR(true), { passive: true });

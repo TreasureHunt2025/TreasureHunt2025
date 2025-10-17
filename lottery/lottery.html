@@ -13,11 +13,11 @@
       --edge: #2f5a94;
       --muted: #c7d6e6;
       --txt: #f2f7fc;
-      --c1: #d4af37;
-      --c2: #60a5fa;
-      --c3: #22d3ee;
-      --c4: #34d399;
-      --c5: #64748b;
+      --c1: #FFD400;
+      --c2: #4FC3F7;
+      --c3: #CD7F32;
+      --c4: #8BC34A;
+      --c5: #9E9E9E;
       --accent: #61b0ff;
       --accentGlow: rgba(97, 176, 255, .35);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -546,6 +546,7 @@
   <script>
     // === state ===
     const KEY = 'lottery_num_state_v15';
+    // 初期在庫(編集予定)
     const DEFAULT_INV = { 1: 5, 2: 18, 3: 35, 4: 82, 5: 160 };
     let inv = loadInv();
     let plannedDraws = 0, doneDraws = 0, pendingResults = [], selectedTier = null;

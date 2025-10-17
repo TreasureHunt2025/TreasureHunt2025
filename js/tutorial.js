@@ -1,5 +1,5 @@
 // js/tutorial.js
-import { db, requireUidOrRedirect } from "./firebase-init.js";
+import { db, requireTeamOrRedirect } from "./firebase-init.js";
 import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 /* ===== PDF.js 読み込み（CJK対応） ===== */
@@ -10,7 +10,7 @@ const STANDARD_FONT_DATA_URL = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/s
 
 /* ---------- 「ゲームを始める」 ---------- */
 document.addEventListener("DOMContentLoaded", async () => {
-  const uid = await requireUidOrRedirect();
+  const uid = await requireTeamOrRedirect();
   const startBtn = document.getElementById("startBtn") || document.getElementById("startGameBtn");
   if (!startBtn) return;
 
@@ -19,8 +19,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       const ref = doc(db, "teams", uid);
       const snap = await getDoc(ref);
       if (!snap.exists()) throw new Error("参加情報が見つかりません");
-      if (!snap.data().startTime) await updateDoc(ref, { startTime: serverTimestamp() });
-      location.href = `map.html?uid=${encodeURIComponent(uid)}`;
+      const updates = {};
+      if (!snap.data().startTime) updates.startTime = serverTimestamp();
+      updates.status = "started";
+      await updateDoc(ref, updates);
+      location.href = `map.html?team=${encodeURIComponent(uid)}`;
     } catch (e) {
       console.error(e);
       alert("スタート処理でエラーが発生しました。");

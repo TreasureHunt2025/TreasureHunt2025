@@ -1,4 +1,4 @@
-import { db, ensureAuthed } from "./firebase-init.js";
+import { db, ensureAuthed, toTeamId } from "./firebase-init.js";
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 /* ---------- DOM ---------- */
@@ -35,26 +35,38 @@ if (form) {
 
     lock(submitBtn, true);
     try {
-      // 匿名ログイン（永続化は firebase-init 側でフォールバック処理済み）
       const user = await ensureAuthed();
       const uid = user.uid;
 
-      const ref = doc(db, "teams", uid);
-      const snap = await getDoc(ref);
-
-      if (!snap.exists()) {
-        await setDoc(ref, {
-          teamName,
-          members,
-          goalRequired: 4,
-          playDay: yyyymmddJST(),
-          startTime: serverTimestamp(),
-          createdAt: serverTimestamp(),
-        });
+      // teamId を決定（同名はサフィックスでユニーク化）
+      let base = toTeamId(teamName);
+      if (!base) throw new Error("チーム名からIDを生成できませんでした");
+      let teamId = base, i = 2;
+      // ユニーク確保
+      while ((await getDoc(doc(db, "teams", teamId))).exists()) {
+        teamId = `${base}-${i++}`;
       }
 
-      // UIDはURLで引き回す（localStorageは使わない）
-      location.href = `tutorial.html?uid=${encodeURIComponent(uid)}`;
+      // 生成
+      await setDoc(doc(db, "teams", teamId), {
+        teamId, teamName, members,
+        goalRequired: 4,
+        playDay: yyyymmddJST(),
+        startTime: serverTimestamp(),
+        createdAt: serverTimestamp(),
+        uids: [uid]
+      }, { merge: true });
+
+      // 逆引き（UID→teamId）
+      await setDoc(doc(db, "uidIndex", uid), {
+        teamId, linkedAt: serverTimestamp()
+      }, { merge: true });
+
+      // 以後のページで拾いやすいように保存
+      try { localStorage.setItem("teamId", teamId); localStorage.setItem("teamName", teamName); } catch { }
+
+      location.href = `tutorial.html?team=${encodeURIComponent(teamId)}`;
+
     } catch (err) {
       console.error("[register] submit error:", err);
       alert(err?.message || "登録に失敗しました。ネットワークをご確認ください。");

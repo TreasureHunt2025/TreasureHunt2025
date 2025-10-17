@@ -56,3 +56,48 @@ async function requireUidOrRedirect() {
 }
 
 export { db, auth, ensureAuthed, requireUidOrRedirect };
+
+// ------ 追加: teamId ユーティリティ ------
+function toTeamId(name) {
+  return (name || "").trim().toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+async function resolveTeamId() {
+  // 1) URL ?team=
+  const sp = new URLSearchParams(location.search);
+  const t = (sp.get("team") || "").trim();
+  if (t) return t;
+
+  // 2) localStorage
+  try {
+    const ls = localStorage.getItem("teamId");
+    if (ls) return ls;
+  } catch { }
+
+  // 3) UID → uidIndex/{uid} から teamId 解決（あれば）
+  try {
+    const user = await ensureAuthed();
+    const uid = user?.uid;
+    if (uid) {
+      const idx = await getDoc(doc(db, "uidIndex", uid));
+      const teamId = idx.exists() ? (idx.data()?.teamId || "") : "";
+      if (teamId) return teamId;
+    }
+  } catch { }
+  return null;
+}
+
+async function requireTeamOrRedirect() {
+  const teamId = await resolveTeamId();
+  if (!teamId) { location.href = "index.html"; throw new Error("No teamId"); }
+  const ref = doc(db, "teams", teamId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) { location.href = "register.html"; throw new Error("Team not registered"); }
+  // キャッシュ
+  try { localStorage.setItem("teamId", teamId); } catch { }
+  return teamId;
+}
+
+export { toTeamId, resolveTeamId, requireTeamOrRedirect };

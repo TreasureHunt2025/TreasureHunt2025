@@ -1,11 +1,5 @@
-// /js/home-state.js
-// ホームの出し分け：未登録=スタートのみ / 開始済=「続きから」+「タブを閉じた人へ」 / クリア済=引換QRのみ
-// ・Firebase 初期化は firebase-init.js に統一
-// ・UID -> localStorage('teamId') の順でサーバー照合
-// ・再判定は「モーダルを手動オープン」方式（自動表示しない）
-// ・goal.html にリンク/QRを生成
-import { db, ensureAuthed } from "./firebase-init.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+import { db, ensureAuthed, toTeamId } from "./firebase-init.js";
+import { doc, getDoc, setDoc, collection, getDocs, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 const startBtn = document.getElementById("startBtn");
 const continueBtn = document.getElementById("continueBtn");
@@ -32,11 +26,7 @@ if (!reclaimError && reclaimModal) {
 function hide(el) { if (!el) return; el.hidden = true; el.style.display = "none"; }
 function show(el) { if (!el) return; el.hidden = false; el.style.display = ""; }
 
-function toTeamId(name) {
-  return (name || "").trim().toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, "-")
-    .replace(/^-+|-+$/g, "");
-}
+// toTeamId は firebase-init.js の共通関数を使用
 
 async function readTeam(id) {
   if (!id) return null;
@@ -94,13 +84,16 @@ function renderState({ teamId, status, exchangeToken }) {
 async function init() {
   hide(startBtn); hide(continueBtn); hide(recoverBtn); hide(exchangeSection);
 
-  // 1) UID で照合（匿名認証を含む）
+  // 1) UID → uidIndex/{uid} で照合（匿名認証を含む）
   let uid = null;
   try { uid = (await ensureAuthed())?.uid; } catch (_) { }
-  const byUid = await readTeam(uid);
-  if (byUid) {
-    renderState({ teamId: byUid.id, status: byUid.data?.status, exchangeToken: byUid.data?.exchangeToken });
-    return;
+  if (uid) {
+    const idx = await getDoc(doc(db, "uidIndex", uid));
+    const tid = idx.exists() ? (idx.data()?.teamId || "") : "";
+    if (tid) {
+      const byIdx = await readTeam(tid);
+      if (byIdx) { renderState({ teamId: byIdx.id, status: byIdx.data?.status, exchangeToken: byIdx.data?.exchangeToken }); return; }
+    }
   }
 
   // 2) localStorage('teamId') で照合
@@ -150,12 +143,47 @@ reclaimBtn?.addEventListener("click", async (ev) => {
     return;
   }
 
-  // サーバー照合
-  const team = await readTeam(inputId);
+  // 1) teamId 直参照
+  let team = await readTeam(inputId);
+
+  // 2) 見つからなければ「旧UIDキー（同名）」を検索→移行
   if (!team) {
-    reclaimError.textContent = "登録が見つかりません。新規の方は「ゲームスタート」から登録してください。";
-    return;
+    const q = query(collection(db, "teams"),
+      where("teamName", "==", name.trim()),
+      orderBy("createdAt", "desc"),
+      limit(1)
+    );
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      const old = snap.docs[0];
+      const oldId = old.id;
+      const data = old.data();
+
+      // teamIdキーへコピー
+      await setDoc(doc(db, "teams", inputId), {
+        ...data,
+        teamId: inputId,
+        migratedFrom: oldId,
+        migratedAt: serverTimestamp()
+      }, { merge: true });
+
+      // points サブコレクション移行
+      const points = await getDocs(collection(db, "teams", oldId, "points"));
+      for (const p of points.docs) {
+        await setDoc(doc(db, "teams", inputId, "points", p.id), p.data(), { merge: true });
+      }
+      // インデックス（この端末のUID→teamId）
+      try {
+        const uid = (await ensureAuthed())?.uid;
+        if (uid) await setDoc(doc(db, "uidIndex", uid), { teamId: inputId, linkedAt: serverTimestamp() }, { merge: true });
+      } catch { }
+
+      team = await readTeam(inputId);
+    }
   }
+
+  if (!team) { reclaimError.textContent = "登録が見つかりません。新規の方は「ゲームスタート」から登録してください。"; return; }
+
 
   // 端末に保存（以後は通常フローで拾える）
   localStorage.setItem("teamId", inputId);
@@ -173,7 +201,7 @@ reclaimBtn?.addEventListener("click", async (ev) => {
   if (status === "started") {
     // 同じチーム名として再開：map へ
     if (reclaimModal?.open) reclaimModal.close();
-    location.href = "map.html";
+    location.href = "map.html?team=" + encodeURIComponent(team.id);
     return;
   }
 

@@ -1,4 +1,4 @@
-import { db, requireUidOrRedirect } from "./firebase-init.js";
+import { db, requireTeamOrRedirect } from "./firebase-init.js";
 import {
   doc, getDoc, updateDoc, serverTimestamp,
   collection, getDocs
@@ -29,7 +29,7 @@ function setButtonsIncomplete(uid) {
     rankBtn.textContent = "マップへ戻る";
     rankBtn.classList.remove("primary");
     rankBtn.classList.add("secondary");
-    rankBtn.onclick = () => (location.href = `map.html?uid=${encodeURIComponent(uid)}`);
+    rankBtn.onclick = () => (location.href = `map.html?team=${encodeURIComponent(uid)}`);
   }
   if (homeBtn) {
     homeBtn.textContent = "トップへ戻る";
@@ -63,7 +63,7 @@ async function ensureQRCodeLib() {
 }
 
 async function renderVerifyQR(uid) {
-  const url = new URL(`./verify.html?uid=${encodeURIComponent(uid)}`, location.href).toString();
+  const url = new URL(`./verify.html?team=${encodeURIComponent(uid)}`, location.href).toString();
   if (verifyUrlEl) verifyUrlEl.textContent = url;
 
   const QR = await ensureQRCodeLib();
@@ -85,7 +85,7 @@ async function renderVerifyQR(uid) {
 
 /* ---------- main ---------- */
 window.addEventListener("DOMContentLoaded", async () => {
-  const uid = await requireUidOrRedirect();
+  const uid = await requireTeamOrRedirect();
 
   try {
     const teamRef = doc(db, "teams", uid);
@@ -123,6 +123,20 @@ window.addEventListener("DOMContentLoaded", async () => {
       if (saveEl) saveEl.textContent = "記録を保存しました。";
     } else if (saveEl) {
       saveEl.textContent = "";
+    }
+
+    // クリア状態を確定
+    let { status, exchangeToken } = data;
+    if (status !== "cleared") {
+      try {
+        if (!exchangeToken) {
+          exchangeToken = (crypto?.randomUUID?.() || Math.random().toString(36).slice(2, 10));
+        }
+        await updateDoc(teamRef, {
+          status: "cleared",
+          exchangeToken
+        });
+      } catch { }
     }
 
     if (timeEl) timeEl.textContent = elapsed ? fmt(elapsed) : "記録なし";

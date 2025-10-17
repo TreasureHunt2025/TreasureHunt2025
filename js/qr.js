@@ -1,4 +1,4 @@
-import { db, requireUidOrRedirect } from "./firebase-init.js";
+import { db, requireTeamOrRedirect } from "./firebase-init.js";
 import {
   collection, doc, getDocs, setDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
@@ -21,18 +21,18 @@ const GAME_URLS = {
 function applyPageMode({ returned }) {
   const title = document.querySelector('#qrTitle');
   const start = document.querySelector('#startGameBtn');
-  const back  = document.querySelector('#backToMapBtn');
+  const back = document.querySelector('#backToMapBtn');
 
   if (returned) {
     // ★ ゲームをクリアして戻ってきたとき
-    if (title) title.textContent = 'クリアおめでとう！<br>次のお宝を探そう！';
+    if (title) title.textContent = 'クリアおめでとう！次のお宝を探そう！';
     if (start) start.style.display = 'none';
-    if (back)  back.style.display  = 'inline-block';
+    if (back) back.style.display = 'inline-block';
   } else {
     // ★ QR読み取り直後（未プレイ）
     if (title) title.textContent = 'QRが読み取られました!ミニゲームをクリアしてお宝をゲットしよう！';
     if (start) start.style.display = 'inline-block';
-    if (back)  back.style.display  = 'none';
+    if (back) back.style.display = 'none';
   }
 }
 
@@ -67,15 +67,16 @@ function addFoundLocal(pointId) {
 }
 
 // === Firestore書き込み（失敗しても落とさない） ====================
-async function recordPointToServer(uid, pointId) {
+async function recordPointToServer(teamId, pointId) {
   await setDoc(
-    doc(db, "teams", uid, "points", pointId),
+    doc(db, "teams", teamId, "points", pointId),
     { foundAt: serverTimestamp() },
     { merge: true }
   );
 }
-async function countFoundOnServer(uid) {
-  const snap = await getDocs(collection(db, "teams", uid, "points"));
+
+async function countFoundOnServer(teamId) {
+  const snap = await getDocs(collection(db, "teams", teamId, "points"));
   return snap.size;
 }
 
@@ -124,8 +125,8 @@ async function applyReturnIfAny() {
 
   // Firestore へは可能なら保存（失敗しても無視）
   try {
-    const uid = await requireUidOrRedirect();
-    await recordPointToServer(uid, data.pointId);
+    const teamId = await requireTeamOrRedirect();
+    await recordPointToServer(teamId, data.pointId);
   } catch (e) {
     // 権限なし・未ログインなどは無視（ローカルのみで継続）
     console.warn("[qr] server write skipped:", e?.message || e);
@@ -138,17 +139,22 @@ async function applyReturnIfAny() {
 async function maybeAutoGoal() {
   // まずサーバー状態で判定（可能なら）
   try {
-    const uid = await requireUidOrRedirect();
-    const n = await countFoundOnServer(uid);
+    const teamId = await requireTeamOrRedirect();
+    const n = await countFoundOnServer(teamId);
     if (n >= GOAL_REQUIRED) {
-      location.replace("./goal.html");
+      location.replace(`./goal.html?team=${encodeURIComponent(teamId)}`);
       return;
     }
   } catch {
     // サーバー使えない場合はローカルで判定
   }
   if (getFoundLocal().length >= GOAL_REQUIRED) {
-    location.replace("./goal.html");
+    try {
+      const teamId = await requireTeamOrRedirect();
+      location.replace(`./goal.html?team=${encodeURIComponent(teamId)}`);
+    } catch {
+      location.replace("./goal.html");
+    }
   }
 }
 
@@ -185,8 +191,13 @@ async function setupStartButtons() {
 function setupFinishButton() {
   const btn = $("#finishBtn");
   if (!btn) return;
-  btn.addEventListener("click", () => {
-    location.href = "./goal.html";
+  btn.addEventListener("click", async () => {
+    try {
+      const teamId = await requireTeamOrRedirect();
+      location.href = `./goal.html?team=${encodeURIComponent(teamId)}`;
+    } catch {
+      location.href = "./goal.html"; // フォールバック
+    }
   });
 }
 
@@ -210,8 +221,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupFinishButton();
 
   // マップに戻る
-  document.querySelector('#backToMapBtn')?.addEventListener('click', () => {
-    location.href = './map.html'; 
+  document.querySelector('#backToMapBtn')?.addEventListener('click', async () => {
+    try {
+      const teamId = await requireTeamOrRedirect();
+      location.href = `./map.html?team=${encodeURIComponent(teamId)}`;
+    } catch {
+      location.href = './map.html'; // フォールバック
+    }
   });
   // 6個なら自動ゴール（qr.html に戻ったこの時点でのみ実行）
   await maybeAutoGoal();

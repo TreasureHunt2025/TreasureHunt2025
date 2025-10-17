@@ -1,5 +1,4 @@
-// js/map.js
-import { db, requireUidOrRedirect } from "./firebase-init.js";
+import { db, requireTeamOrRedirect } from "./firebase-init.js";
 import { doc, getDocs, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 /* ---------- DOM ---------- */
@@ -64,7 +63,7 @@ function applyBaseStyle() {
   map.setOptions({
     styles: [
       { elementType: "labels", stylers: [{ visibility: "off" }] },
-      { featureType: "poi", elementType: "all", stylers: [{ visibility: "off" }] }, 
+      { featureType: "poi", elementType: "all", stylers: [{ visibility: "off" }] },
       { featureType: "transit", stylers: [{ visibility: "off" }] },
       { featureType: "administrative", stylers: [{ visibility: "off" }] },
       { featureType: "water", stylers: [{ visibility: "off" }] },
@@ -210,39 +209,40 @@ function toggleFinishButton(show, uid) {
   const btn = document.getElementById("finishBtn") || document.getElementById("finish-btn");
   if (!btn) return;
   btn.style.display = show ? "block" : "none";
-  if (show) btn.onclick = () => { location.href = `goal.html?uid=${encodeURIComponent(uid)}`; };
+  if (show) btn.onclick = () => { location.href = `goal.html?team=${encodeURIComponent(uid)}`; };
+
 }
 
 /* ---------- Firestore同期 & スキャナ ---------- */
-let uid;
+let teamId;
 
 (async () => {
-  uid = await requireUidOrRedirect();
+  teamId = await requireTeamOrRedirect();
   await initializeMap();
 
   // 初期：サーバの取得済みをUIに反映
-  const snap = await getDocs(collection(db, "teams", uid, "points"));
+  const snap = await getDocs(collection(db, "teams", teamId, "points"));
   const foundServer = new Set(); snap.forEach(d => foundServer.add(d.id));
   const cacheSet = getFoundSet(); foundServer.forEach(id => cacheSet.add(id)); setFoundSet(cacheSet);
   redrawCircles(); renderHints();
   foundServer.forEach(id => window.markTreasureFound(id));
-  toggleFinishButton(foundServer.size >= cfg.goalRequired, uid);
+  toggleFinishButton(foundServer.size >= cfg.goalRequired, teamId);
 
   // リアルタイム
-  onSnapshot(collection(db, "teams", uid, "points"), (qs) => {
+  onSnapshot(collection(db, "teams", teamId, "points"), (qs) => {
     const s = new Set(); qs.forEach(d => s.add(d.id));
     setFoundSet(s);
     redrawCircles(); renderHints();
     s.forEach(id => window.markTreasureFound(id));
-    toggleFinishButton(s.size >= cfg.goalRequired, uid);
+    toggleFinishButton(s.size >= cfg.goalRequired, teamId);
   });
 
   // QRスキャナ
-  setupScanner(uid);
+  setupScanner();
 })();
 
 /* ---------- スキャナ実装（BarcodeDetector → jsQR フォールバック） ---------- */
-function setupScanner(uid) {
+function setupScanner() {
   const btn = document.getElementById("scan-qr");
   const wrap = document.getElementById("scanner");
   const video = document.getElementById("qrVideo");
@@ -264,8 +264,8 @@ function setupScanner(uid) {
     const t = String(text || "").trim(); if (!t) return;
     if (isUrl(t)) { location.href = t; return; }
     const m = t.match(/^qr([1-6])$/i);
-    if (m) { location.href = `qr.html?key=${t.toLowerCase()}&uid=${encodeURIComponent(uid)}`; return; }
-    if (/^[A-Za-z0-9_\-]{6,}$/.test(t)) { location.href = `qr.html?token=${encodeURIComponent(t)}&uid=${encodeURIComponent(uid)}`; return; }
+    if (m) { location.href = `qr.html?key=${t.toLowerCase()}&team=${encodeURIComponent(teamId)}`; return; }
+    if (/^[A-Za-z0-9_\-]{6,}$/.test(t)) { location.href = `qr.html?token=${encodeURIComponent(t)}&team=${encodeURIComponent(teamId)}`; return; }
     alert(`QRを認識しましたが遷移先を判定できません:\n${t}`);
   }
 

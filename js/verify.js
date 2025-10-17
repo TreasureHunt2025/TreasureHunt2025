@@ -1,4 +1,3 @@
-// js/verify.js
 import { db, ensureAuthed } from "./firebase-init.js";
 import { doc, getDoc, getDocs, collection, updateDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
@@ -67,7 +66,8 @@ async function main() {
   await ensureAuthed();
 
   const p = new URLSearchParams(location.search);
-  const uid = p.get("uid") || "";
+  let uid = p.get("team") || ""; // teamId
+  if (!uid) uid = p.get("uid") || ""; // 互換: 古いQR
   if (uidEl) uidEl.textContent = uid || "-";
   if (!uid) {
     if (titleEl) titleEl.textContent = "無効なQRです";

@@ -22,7 +22,7 @@
   const resTime = document.getElementById("resTime");
   const condText = document.getElementById("condText");
 
-  if (condText) condText.textContent = `1〜${N * N - 1}整列`;
+  if (condText) condText.textContent = `1〜15を左上から整列`;
 
   // ===== 状態 =====
   let tiles = [];               // 長さN*N。最後が空白(=0)

@@ -25,7 +25,7 @@ function applyPageMode({ returned }) {
 
   if (returned) {
     // ★ ゲームをクリアして戻ってきたとき
-    if (title) title.textContent = 'クリアおめでとう！次のお宝を探そう！';
+    if (title) title.innerHTML = 'クリアおめでとう！<br>次のお宝を探そう！';
     if (start) start.style.display = 'none';
     if (back) back.style.display = 'inline-block';
   } else {
@@ -191,7 +191,14 @@ async function setupStartButtons() {
 function setupFinishButton() {
   const btn = $("#finishBtn");
   if (!btn) return;
+
   btn.addEventListener("click", async () => {
+    const ok = confirm("一度終了すると再開はできませんが、本当に終了しますか？");
+    if (!ok) return;
+
+    // 二度押し防止の簡易ロック（任意）
+    btn.disabled = true;
+
     try {
       const teamId = await requireTeamOrRedirect();
       location.href = `./goal.html?team=${encodeURIComponent(teamId)}`;

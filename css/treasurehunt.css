@@ -1302,10 +1302,18 @@ body.tutorial-page #slides canvas {
 
 /* QRページ：中央に大きい黄色ボタン */
 .qr-cta {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
   margin: clamp(16px, 5vh, 48px) 0 0;
-  /* カードの下に余白 */
+}
+
+/* どのボタンでも同じ幅で縦に揃える */
+.qr-cta>.btn,
+.qr-cta>.btn-primary,
+.qr-cta>.btn-secondary {
+  display: block;
+  width: min(480px, 100%);
 }
 
 .btn-xl {

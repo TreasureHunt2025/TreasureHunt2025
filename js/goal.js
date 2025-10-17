@@ -97,7 +97,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
 
     const data = teamSnap.data();
-    const required = Number(data.goalRequired ?? 6);
+    const required = Number(data.goalRequired ?? 4);
 
     // サーバ（Firestore）の points 件数で進捗判定
     const ps = await getDocs(collection(db, "teams", uid, "points"));
@@ -113,6 +113,9 @@ window.addEventListener("DOMContentLoaded", async () => {
       setButtonsIncomplete(uid);
       return;
     }
+
+    const TOTAL_TREASURES = 6;
+    if (treEl) treEl.textContent = `${found} / ${TOTAL_TREASURES}`;
 
     // elapsed 未保存なら保存（簡易：端末時刻ベースで差分計算）
     let { elapsed, startTime } = data;

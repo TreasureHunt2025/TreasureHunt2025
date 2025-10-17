@@ -22,7 +22,7 @@
   const resTime = document.getElementById("resTime");
   const condText = document.getElementById("condText");
 
-  if (condText) condText.textContent = `1〜15を左上から整列`;
+  if (condText) condText.textContent = `1〜8を左上から整列`;
 
   // ===== 状態 =====
   let tiles = [];               // 長さN*N。最後が空白(=0)
@@ -165,7 +165,6 @@
     tStart = { ...p, idx: childIndexOf(e.currentTarget) };
     // 長押しで一時停止
     clearTimeout(_pressTimer);
-    _pressTimer = setTimeout(() => togglePause(true), 700);
   }
   function touchMove(e) {
     if (!tStart) return;
@@ -315,7 +314,6 @@
       pauseEl.classList.add("hidden");
     }
   }
-  resumeBtn.addEventListener("click", () => togglePause(false));
 
   // ===== 復帰（qr6へ） =====
   function returnToQR(immediate) {

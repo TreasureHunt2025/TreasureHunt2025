@@ -17,7 +17,7 @@ let reclaimError = document.getElementById("reclaimError");
 if (!reclaimError && reclaimModal) {
   reclaimError = document.createElement("p");
   reclaimError.id = "reclaimError";
-  reclaimError.style.color = "#fdd835";
+  reclaimError.style.color = "#d32f2f";
   reclaimError.style.marginTop = ".6em";
   reclaimError.style.fontSize = "0.9em";
   reclaimModal.querySelector("form")?.appendChild(reclaimError);

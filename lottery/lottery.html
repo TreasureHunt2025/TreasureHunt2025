@@ -814,6 +814,7 @@
     function el(tag, cls, html) { const x = document.createElement(tag); if (cls) x.className = cls; if (html != null) x.innerHTML = html; return x; }
     function btn(txt, fn) { const b = document.createElement('button'); b.textContent = txt; b.onclick = fn; return b; }
     function renderInv() {
+
       invEl.innerHTML = '';
       const rows = [
         { id: 1, name: '1等', color: colorFor(1) },
@@ -830,8 +831,16 @@
         const plus = btn('+', () => { inv[r.id] = (inv[r.id] | 0) + 1; qty.textContent = inv[r.id]; saveInv(); });
         plus.className = 'invBtn';
         const set = document.createElement('input'); set.type = 'number'; set.className = 'invInput'; set.value = inv[r.id] | 0; set.min = '0';
-        set.onchange = () => { inv[r.id] = Math.max(0, Math.floor(Number(set.value) || 0)); qty.textContent = inv[r.id]; saveInv(); };
+        set.setAttribute('inputmode', 'numeric');
+        set.setAttribute('enterkeyhint', 'done');
+        set.onchange = () => { inv[r.id] = Math.max(0, Math.floor(Number(set.value) || 0)); qty.textContent = inv[r.id]; saveInv(); set.blur(); };
         invEl.append(name, qty, minus, plus, set);
+        set.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            set.blur();
+          }
+        });
       }
     }
 

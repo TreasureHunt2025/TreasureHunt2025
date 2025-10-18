@@ -42,7 +42,11 @@ body {
   gap: 16px;
   max-width: 720px;
   margin: 0 auto;
+  /* 上  右左  下（セーフエリア下考慮） */
   padding: 20px 16px calc(28px + env(safe-area-inset-bottom));
+  /* 右寄りに見える端末対策：左右もセーフエリアを考慮して拡張 */
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
 }
 
 .hud {
@@ -86,7 +90,7 @@ body {
   display: grid;
   gap: 8px;
   grid-auto-flow: column;
-  justify-content: center
+  justify-content: center;
 }
 
 .progress i {
@@ -102,18 +106,28 @@ body {
   box-shadow: 0 0 12px rgba(124, 255, 107, .35), inset 0 0 0 2px rgba(0, 0, 0, .2);
 }
 
+/* ==== ここからレイアウト調整（右寄り解消） ==== */
 .board {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  /* セル幅 = コンテナの2分割（セル内でボタンを100%に） */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: repeat(2, 1fr);
   gap: 12px;
   align-content: center;
-  justify-items: center;
+  justify-content: center;
+  /* グリッド自体を中央に寄せる */
+  justify-items: stretch;
+  /* 各セルの中身をセル幅いっぱいに */
 }
 
+/* ボタンはセル幅100%・正方形で自動サイズ（はみ出し防止＆中央配置） */
 .pad {
-  width: min(44vw, 300px);
-  height: min(44vw, 300px);
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  /* 正方形 */
+  max-width: 300px;
+  /* 大画面の上限 */
   border-radius: 22px;
   border: none;
   cursor: pointer;
@@ -319,10 +333,13 @@ body {
   cursor: pointer;
 }
 
-/* 小さめ画面のグリッド間隔調整 */
+/* 小さめ画面の調整（高さが低い時はパッド上限を少し縮める） */
 @media (max-height:640px) {
+  .board {
+    gap: 10px;
+  }
+
   .pad {
-    width: min(42vw, 240px);
-    height: min(42vw, 240px);
+    max-width: 240px;
   }
 }

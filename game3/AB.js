@@ -1,4 +1,4 @@
-// /game3/AB.js — 完全版（5連続正解→CLEAR→5秒後にqr3へ、失敗は場内リトライ）
+// /game3/AB.js — 5連続正解→CLEAR→5秒後にqr3へ、直近5問の重複を防止
 (() => {
   'use strict';
 
@@ -24,6 +24,18 @@
     { q: 'ポケモンで「伝説」は？', a: ['アルセウス', 'パチリス'] },
     { q: '2025年10月13日は何の日？', a: ['スポーツの日', '文化の日'] },
     { q: 'うるう年は何日？', a: ['366日', '364日'] },
+
+    // === 追加（21〜30）：すべて左が正解 ===
+    { q: '大谷翔平の日米通算本塁打数は？', a: ['328本', '283本'] },     // 21
+    { q: '大谷翔平の日米通算勝利数は？', a: ['81勝', '67勝'] },         // 22
+    { q: '今年の所祭実行委員会の代表は？', a: ['女の子', '男の子'] },     // 23
+    { q: '所沢キャンパスにあるのは何号館？', a: ['100号館', '10号館'] },   // 24
+    { q: '今年の箱根駅伝で早稲田は何位だった？', a: ['4位', '3位'] },     // 25
+    { q: '早稲田大学の創設者は？', a: ['大隈重信', '伊藤博文'] },         // 26
+    { q: '鉛筆1本で線をかける距離は？', a: ['約50km', '約100km'] },       // 27
+    { q: 'ブラジルの首都は?', a: ['ブラジリア', 'リオデジャネイロ'] },     // 28
+    { q: 'オーストラリアの首都は？', a: ['キャンベラ', 'シドニー'] },      // 29
+    { q: '世界で一番1人当たりにチョコを消費する国は？', a: ['スイス', 'イギリス'] }, // 30
   ];
 
   // ===== DOM =====
@@ -36,8 +48,8 @@
   const panel = document.querySelector('.panel');
 
   // 開始スプラッシュ（CLEARでも再利用）
-  const splash = document.getElementById('splash');         // 既存の開始ダイアログを流用（HTMLにあり） :contentReference[oaicite:2]{index=2}
-  const startBtn = document.getElementById('startQuiz');    // PLAYボタン（開始時のみ使用） :contentReference[oaicite:3]{index=3}
+  const splash = document.getElementById('splash');
+  let startBtn = document.getElementById('startQuiz');
 
   // 正誤FX
   const fx = document.createElement('div');
@@ -54,6 +66,26 @@
   let correctIdx = 0;      // 正解ボタンindex（0/1）
   let busy = false;        // 入力ロック
 
+  // ===== 直近5問の重複防止（localStorage） =====
+  const RECENT_KEY = 'ab_recent_qids';
+  const MAX_RECENT = 5;
+  const getRecent = () => {
+    try {
+      const a = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+      return Array.isArray(a) ? a.filter(Number.isInteger).slice(-MAX_RECENT) : [];
+    } catch {
+      return [];
+    }
+  };
+  const pushRecent = (qid) => {
+    try {
+      const a = getRecent();
+      a.push(qid);
+      while (a.length > MAX_RECENT) a.shift();
+      localStorage.setItem(RECENT_KEY, JSON.stringify(a));
+    } catch { /* noop */ }
+  };
+
   // ===== ユーティリティ =====
   const shuffle = (arr) => {
     const a = arr.slice();
@@ -63,7 +95,6 @@
     }
     return a;
   };
-  const pickRandomSet = (n = NEED) => shuffle([...Array(QUESTIONS.length)].map((_, i) => i)).slice(0, n);
   const setProgress = (n) => { [...elProgress.children].forEach((b, i) => b.classList.toggle('filled', i < n)); };
   const vibrate = (p) => { try { navigator.vibrate && navigator.vibrate(p); } catch { } };
   const clearFx = () => {
@@ -72,10 +103,26 @@
     fx.className = 'fx'; fx.textContent = '';
   };
 
+  // 直近5問を避けて n 問抽選（不足時はやむなく近過去から補充）
+  const pickRandomSet = (n = NEED) => {
+    const recent = new Set(getRecent());
+    const all = [...Array(QUESTIONS.length)].map((_, i) => i);
+    const pool = all.filter(i => !recent.has(i));
+    const primary = shuffle(pool);
+    if (primary.length >= n) return primary.slice(0, n);
+    const fallback = shuffle(all.filter(i => recent.has(i)));
+    return primary.concat(fallback).slice(0, n);
+  };
+
   // ===== 出題表示 =====
   const render = () => {
     clearFx();
-    current = QUESTIONS[set[index]];
+    const qid = set[index];
+    current = QUESTIONS[qid];
+
+    // ここで「直近5問」履歴に積む（次回以降の抽選で除外される）
+    pushRecent(qid);
+
     elQ.textContent = current.q;
 
     // 左右ランダム配置（元データは左が正解）
@@ -115,7 +162,6 @@
       streak++; index++; elStreak.textContent = String(streak); setProgress(streak);
 
       if (streak >= NEED) {
-        // クリア演出 → 5秒後にqr3へ（bridge優先）
         elStatus.textContent = 'CLEAR! おめでとう！';
         vibrate([15, 30, 15]);
         showClearSplash();
@@ -127,8 +173,7 @@
       vibrate([45]);
       (pickedIdx === 0 ? elA : elB).classList.add('bad');
       panel.classList.add('wrong', 'show-wrong', 'shake'); fx.textContent = '× 不正解';
-      // 失敗はその場でリスタート（戻らない）
-      setTimeout(() => { start(); }, 680);
+      setTimeout(() => { start(); }, 680); // 失敗はその場でリスタート
     }
   };
 
@@ -136,16 +181,18 @@
 
   // ===== スプラッシュ表示 =====
   const showStartSplash = () => {
+    // 「全◯◯問」表記を実数に合わせて自動更新
+    const rules = splash.querySelector('.splash-rules li');
+    if (rules) rules.textContent = `全${QUESTIONS.length}問からランダムで出題`;
+
     splash.style.display = 'grid';
-    // 既存の文言/ボタン（AB.htmlに含まれる）をそのまま使う :contentReference[oaicite:4]{index=4}
-    startBtn.addEventListener('click', () => {
+    startBtn?.addEventListener('click', () => {
       splash.style.display = 'none';
       start();
     }, { passive: true, once: true });
   };
 
   const showClearSplash = () => {
-    // CLEAR用に #splash の中身を入れ替えて再利用
     splash.innerHTML = `
       <div class="splash-card">
         <h1>CLEAR!</h1>
@@ -155,17 +202,15 @@
       </div>`;
     splash.style.display = 'grid';
 
-    // 即時復帰ボタン
     const claim = document.getElementById('claimNow');
     claim?.addEventListener('click', () => returnToQR(true), { passive: true });
-
-    // 5秒後に自動復帰（bridgeがあればそれを使う）
-    returnToQR(false);
+    returnToQR(false); // 5秒後に自動復帰
   };
 
   // ===== ライフサイクル =====
   const start = () => {
-    streak = 0; index = 0; set = pickRandomSet(NEED);
+    streak = 0; index = 0;
+    set = pickRandomSet(NEED);   // 直近5問を避けて抽選
     setProgress(0); elStreak.textContent = '0'; elStatus.textContent = 'タップで回答';
     render();
   };

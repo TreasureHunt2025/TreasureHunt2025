@@ -41,14 +41,11 @@
           宝探し企画へようこそ！<br>お宝を集めて豪華景品を<br>ゲットしよう!
         </p>
 
-        <!-- ▼ ボタン出し分け -->
         <div class="hero-actions">
-          <!-- 初回のみ表示（開始済・クリア済では非表示） -->
+          <!-- 初回のみ表示 -->
           <a id="startBtn" href="register.html" class="btn-primary btn--wide">ゲームスタート</a>
-
-          <!-- 開始済のみ表示（クリア済では非表示） -->
+          <!-- 開始済のみ表示 -->
           <a id="continueBtn" href="map.html" class="btn-primary btn--wide" hidden>続きから</a>
-          <button id="recoverBtn" type="button" class="btn-primary btn--wide" hidden>タブを一度閉じた人はこちらから</button>
         </div>
 
         <!-- クリア済のみ表示：引き換えQR -->
@@ -57,7 +54,6 @@
           <div id="exchangeQR" style="display:grid;place-items:center;min-height:220px;"></div>
           <a id="openExchangePage" class="btn-primary btn--wide" href="#" rel="noopener">引き換えQRを表示する</a>
         </section>
-        <!-- ▲ ボタン出し分け -->
 
       </div>
     </section>
@@ -133,19 +129,6 @@
   <!-- ホーム状態制御（開始済/クリア済の出し分け・チーム名再判定ダイアログなど） -->
   <script type="module" src="./js/home-state.js"></script>
 
-  <!-- プライベートモード等でローカルが空の人向け：チーム名で再判定モーダル -->
-  <dialog id="reclaimModal">
-    <form method="dialog" style="min-width:280px">
-      <h3 style="margin-top:0;">開始済みか再判定</h3>
-      <p>プライベートモードや別タブで閉じた方は、当日登録のチーム名を入力してください。</p>
-      <input id="reclaimTeam" placeholder="チーム名" required
-        style="width:100%;padding:.6em;border-radius:8px;border:1px solid #ccc;">
-      <div style="display:flex;gap:.5em;justify-content:flex-end;margin-top:1em;">
-        <button value="cancel" class="btn">キャンセル</button>
-        <button id="reclaimBtn" class="btn primary">判定する</button>
-      </div>
-    </form>
-  </dialog>
 </body>
 
 </html>

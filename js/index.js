@@ -13,11 +13,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!snap.exists()) return;
     const { status } = snap.data() || {};
 
-    if (status === "cleared") {
-      // クリア済みはゴールへ（引き換えQRを即表示）
-      location.replace(`./goal.html?team=${encodeURIComponent(teamId)}&info=${encodeURIComponent("クリア済みです。引き換えQRを表示します。")}`);
-      return;
-    }
     if (status === "redeemed") {
       // 交換済みは開始UIを無効化（あれば）
       const start = document.querySelector('#startBtn, [data-action="start"], #primaryCta');

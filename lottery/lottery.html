@@ -547,7 +547,7 @@
     // === state ===
     const KEY = 'lottery_num_state_v15';
     // 初期在庫(編集予定)
-    const DEFAULT_INV = { 1: 9, 2: 13, 3: 168, 4: 140, 5: 0 };
+    const DEFAULT_INV = { 1: 9, 2: 13, 3: 168, 4: 140 };
     let inv = loadInv();
     let plannedDraws = 0, doneDraws = 0, pendingResults = [], selectedTier = null;
     let running = false, muted = false, controlsLocked = false;
@@ -624,7 +624,7 @@
         const t0 = performance.now();
         const dur = 4000;
         const accel = 0.28, decel = 0.48;
-        const nums = [1, 2, 3, 4, 5];
+        const nums = [1, 2, 3, 4];
         let lastSwitch = t0;
         function easeIn(x) { return x * x; }
         function easeOutQuint(x) { return 1 - Math.pow(1 - x, 5); }
@@ -695,11 +695,17 @@
     function saveInv() { localStorage.setItem(KEY, JSON.stringify(inv)); }
     function totalLeft() { return Object.values(inv).reduce((a, b) => a + (b | 0), 0); }
     function weightedPick() {
-      const tot = totalLeft(); if (tot <= 0) return 5;
+      const tot = [1, 2, 3, 4].reduce((s, t) => s + (inv[t] | 0), 0);
+      if (tot <= 0) return 4; // 理論上来ないがガード
       let r = Math.floor(Math.random() * tot);
-      for (let t = 1; t <= 5; t++) { const c = inv[t] | 0; if (r < c) return t; r -= c; }
-      return 5;
+      for (let t = 1; t <= 4; t++) {
+        const c = inv[t] | 0;
+        if (r < c) return t;
+        r -= c;
+      }
+      return 4;
     }
+
 
     function selectCountButton(n) {
       [btn1, btn2, btn3].forEach((b, i) => {
@@ -822,7 +828,6 @@
         { id: 2, name: '2等', color: colorFor(2) },
         { id: 3, name: '3等', color: colorFor(3) },
         { id: 4, name: '4等', color: colorFor(4) },
-        { id: 5, name: '5等', color: colorFor(5) },
       ];
       for (const r of rows) {
         const name = el('div', 'tierName', `<span class="dot" style="background:${r.color}"></span><span>${r.name}</span>`);

@@ -340,3 +340,14 @@ body {
   justify-content: center;
 }
 .touch-help b{ font-weight: 800; }
+
+
+#goalbar{
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: none;
+}
